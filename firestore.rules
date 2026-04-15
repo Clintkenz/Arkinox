@@ -1,0 +1,160 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: settings/global
+// Fields:
+//   - companyName: string
+//   - logoUrl: string
+//   - primaryColor: string
+//   - secondaryColor: string
+//   - fontFamily: string
+//   - contactEmail: string
+//   - contactPhone: string
+//   - address: string
+//   - socialLinks: map
+//   - seo: map
+//
+// Collection: services
+// Fields:
+//   - title: string (required)
+//   - slug: string (required)
+//   - description: string (required)
+//   - content: string
+//   - icon: string
+//   - imageUrl: string
+//   - order: number
+//   - isVisible: boolean
+//
+// Collection: projects
+// Fields:
+//   - title: string (required)
+//   - slug: string (required)
+//   - description: string (required)
+//   - content: string
+//   - imageUrl: string
+//   - category: string
+//   - date: string
+//   - isVisible: boolean
+//
+// Collection: blogPosts
+// Fields:
+//   - title: string (required)
+//   - slug: string (required)
+//   - excerpt: string
+//   - content: string (required)
+//   - imageUrl: string
+//   - author: string
+//   - publishedAt: string
+//   - tags: list
+//   - isVisible: boolean
+//
+// Collection: teamMembers
+// Fields:
+//   - name: string (required)
+//   - designation: string (required)
+//   - imageUrl: string
+//   - bio: string
+//   - order: number
+//
+// Collection: messages
+// Fields:
+//   - name: string (required)
+//   - email: string (required)
+//   - subject: string
+//   - message: string (required)
+//   - createdAt: string
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (request.auth.token.email == "ekenzeclinton@gmail.com" && request.auth.token.email_verified == true) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isAuthor() {
+      return isAuthenticated() && (
+        isAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'author')
+      );
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isValidString(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Global Settings
+    match /settings/global {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Services
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Projects
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Blog Posts
+    match /blogPosts/{postId} {
+      allow read: if true;
+      allow write: if isAuthor();
+    }
+
+    // Team Members
+    match /teamMembers/{memberId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Messages (Contact Form)
+    match /messages/{messageId} {
+      allow create: if hasRequiredFields(['name', 'email', 'message']) &&
+                      isValidEmail(request.resource.data.email) &&
+                      isValidString('name', 1, 100) &&
+                      isValidString('message', 1, 5000);
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Users (Roles)
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+  }
+}

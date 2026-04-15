@@ -1,0 +1,120 @@
+{
+  "entities": {
+    "siteSettings": {
+      "title": "Site Settings",
+      "description": "Global configuration for the website",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "secondaryColor": { "type": "string" },
+        "fontFamily": { "type": "string" },
+        "heroOpacity": { "type": "number", "description": "Global opacity for hero background images on general pages (0-100)" },
+        "contactEmail": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "address": { "type": "string" },
+        "socialLinks": {
+          "type": "object",
+          "properties": {
+            "facebook": { "type": "string" },
+            "instagram": { "type": "string" },
+            "linkedin": { "type": "string" }
+          }
+        },
+        "seo": {
+          "type": "object",
+          "properties": {
+            "metaTitle": { "type": "string" },
+            "metaDescription": { "type": "string" }
+          }
+        }
+      }
+    },
+    "service": {
+      "title": "Service",
+      "description": "A core service provided by the company",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "content": { "type": "string" },
+        "icon": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "heroImageUrl": { "type": "string" },
+        "heroOpacity": { "type": "number", "description": "Opacity of the hero background image (0-100)" },
+        "order": { "type": "number" },
+        "isVisible": { "type": "boolean" }
+      },
+      "required": ["title", "slug", "description"]
+    },
+    "project": {
+      "title": "Project",
+      "description": "A completed or ongoing project",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "category": { "type": "string" },
+        "date": { "type": "string" },
+        "isVisible": { "type": "boolean" }
+      },
+      "required": ["title", "slug", "description"]
+    },
+    "blogPost": {
+      "title": "Blog Post",
+      "description": "An article or news update",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "author": { "type": "string" },
+        "publishedAt": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "isVisible": { "type": "boolean" }
+      },
+      "required": ["title", "slug", "content"]
+    },
+    "teamMember": {
+      "title": "Team Member",
+      "description": "A member of the management team",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "designation": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "bio": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "designation"]
+    },
+    "message": {
+      "title": "Contact Message",
+      "description": "A message sent via the contact form",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "email", "message"]
+    }
+  },
+  "firestore": {
+    "settings/global": { "schema": "siteSettings", "description": "Global site settings" },
+    "services/{serviceId}": { "schema": "service", "description": "Core services" },
+    "projects/{projectId}": { "schema": "project", "description": "Portfolio projects" },
+    "blogPosts/{postId}": { "schema": "blogPost", "description": "Blog articles" },
+    "teamMembers/{memberId}": { "schema": "teamMember", "description": "Management team" },
+    "messages/{messageId}": { "schema": "message", "description": "Contact form submissions" }
+  }
+}
