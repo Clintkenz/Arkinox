@@ -26,12 +26,13 @@ jobs:
           npm run build
 
       - name: 🚀 Sync Files to Harmon Web
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: appleboy/scp-action@master
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          host: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist/
-          server-dir: public_html/
-          protocol: ftp
-          port: 21
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }} # Adding the passphrase for your new key
+          port: 22
+          source: "dist/*"
+          target: "public_html"
+          strip_components: 1
