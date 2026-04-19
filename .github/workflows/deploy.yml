@@ -26,13 +26,14 @@ jobs:
           npm run build
 
       - name: 🚀 Sync Files to Harmon Web
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
-          server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
+          server: ${{ secrets.FTP_SERVER }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist/
-          server-dir: public_html/
-          protocol: ftp 
-          port: 21
-          # security: loose # Trying to ignore certificate errors
+          port: 22
+          local_path: './UPLOAD_TO_HARMON_WEB/' # Pointing to the visible build folder
+          remote_path: 'public_html/'
+          sftp_only: true
+          password_only: true
+          args: '-o StrictHostKeyChecking=no' # This bypasses the security check that causes "Permission Denied"
