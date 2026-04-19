@@ -26,12 +26,13 @@ jobs:
           npm run build
 
       - name: 🚀 Sync Files to Harmon Web
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          username: ${{ secrets.FTP_USERNAME }}
           server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: 22
-          local_path: './dist/*' # Using the correct parameter name
-          remote_path: '/public_html/' # Using the correct parameter name
-          sftp_only: true
+          local-dir: ./dist/
+          server-dir: public_html/
+          protocol: ftp 
+          port: 21
+          # security: loose # Trying to ignore certificate errors
