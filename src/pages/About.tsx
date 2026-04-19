@@ -61,7 +61,7 @@ export default function About() {
                 Founded in Port Harcourt, Nigeria, Arkinox Integrated Ltd. was established to bridge the gap between complex project requirements and local operational excellence. We understand the unique challenges of the Nigerian industrial landscape, particularly in the oil & gas and construction sectors.
               </p>
               <p>
-                Our mission is to empower contractors and firms by providing them with the tools and support they need to deliver projects safely, efficiently, and in full compliance with regulatory standards.
+                Our mission is to empower contractors and firms by providing them with the tools and support they need to deliver projects safely, efficiently, and in full compliance with regulatory standards in Nigeria.
               </p>
               <div className="bg-accent p-8 rounded-2xl border-l-4 border-secondary">
                 <p className="font-display font-bold text-primary text-xl italic">
