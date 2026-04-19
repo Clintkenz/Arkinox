@@ -26,12 +26,13 @@ jobs:
           npm run build
 
       - name: 🚀 Sync Files to Harmon Web
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
-          server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
+          server: ${{ secrets.FTP_SERVER }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist/
-          server-dir: public_html/ # Adjust this if your site is in a subfolder
-          protocol: ftp # Reverting to ftp as it is more compatible with numeric IP connections
-          # port: 21 # Removing explicit port to let the action decide
+          port: 22
+          local_dir: ./dist/
+          remote_dir: /public_html/
+          ssh_private_key: '' # We'll use password instead
+          # Harmon Web usually supports password auth for SFTP
