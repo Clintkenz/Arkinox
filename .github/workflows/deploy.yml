@@ -33,5 +33,5 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
           server-dir: public_html/ # Adjust this if your site is in a subfolder
-          protocol: ftp # Use ftps if your server supports it for better security
+          protocol: ftps # Using ftps as most modern shared hosts require it
           port: 21
