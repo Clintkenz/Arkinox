@@ -32,7 +32,6 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 22
-          local_dir: ./dist/
-          remote_dir: /public_html/
-          ssh_private_key: '' # We'll use password instead
-          # Harmon Web usually supports password auth for SFTP
+          local_path: './dist/*' # Using the correct parameter name
+          remote_path: '/public_html/' # Using the correct parameter name
+          sftp_only: true
