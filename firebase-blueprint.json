@@ -75,12 +75,15 @@
         "excerpt": { "type": "string" },
         "content": { "type": "string" },
         "imageUrl": { "type": "string" },
-        "author": { "type": "string" },
+        "authorId": { "type": "string", "description": "UID of the author user" },
+        "authorName": { "type": "string" },
+        "authorImage": { "type": "string" },
+        "authorBio": { "type": "string" },
         "publishedAt": { "type": "string" },
         "tags": { "type": "array", "items": { "type": "string" } },
         "isVisible": { "type": "boolean" }
       },
-      "required": ["title", "slug", "content"]
+      "required": ["title", "slug", "content", "authorId"]
     },
     "teamMember": {
       "title": "Team Member",
@@ -94,6 +97,22 @@
         "order": { "type": "number" }
       },
       "required": ["name", "designation"]
+    },
+    "user": {
+      "title": "User",
+      "description": "User profile and role",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "author", "user"] },
+        "displayName": { "type": "string" },
+        "bio": { "type": "string", "description": "Autobiography of the user" },
+        "photoURL": { "type": "string" },
+        "linkedin": { "type": "string" },
+        "instagram": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
     },
     "message": {
       "title": "Contact Message",

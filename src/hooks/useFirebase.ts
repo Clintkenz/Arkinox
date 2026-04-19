@@ -23,32 +23,51 @@ export function useFirebase() {
   // Auth Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        // Check if admin/author
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setIsAdmin(userData.role === 'admin');
-          setIsAuthor(userData.role === 'author' || userData.role === 'admin');
-        } else if (currentUser.email === 'ekenzeclinton@gmail.com') {
-          // Bootstrap first admin
-          await setDoc(doc(db, 'users', currentUser.uid), {
-            uid: currentUser.uid,
-            email: currentUser.email,
-            role: 'admin'
-          });
-          setIsAdmin(true);
-          setIsAuthor(true);
+      try {
+        if (currentUser) {
+          // Check if admin/author and IF BLOCKED
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as UserRole;
+            
+            if (userData.isBlocked) {
+              console.warn("Account is blocked. Signing out...");
+              await auth.signOut();
+              setUser(null);
+              setIsAdmin(false);
+              setIsAuthor(false);
+              return;
+            }
+
+            setUser(currentUser);
+            setIsAdmin(userData.role === 'admin');
+            setIsAuthor(userData.role === 'author' || userData.role === 'admin');
+          } else if (currentUser.email === 'ekenzeclinton@gmail.com') {
+            // Bootstrap first admin
+            await setDoc(doc(db, 'users', currentUser.uid), {
+              uid: currentUser.uid,
+              email: currentUser.email,
+              role: 'admin',
+              isBlocked: false
+            });
+            setUser(currentUser);
+            setIsAdmin(true);
+            setIsAuthor(true);
+          } else {
+            setUser(currentUser);
+            setIsAdmin(false);
+            setIsAuthor(false);
+          }
         } else {
+          setUser(null);
           setIsAdmin(false);
           setIsAuthor(false);
         }
-      } else {
-        setIsAdmin(false);
-        setIsAuthor(false);
+      } catch (err) {
+        console.error("Error during auth state change:", err);
+      } finally {
+        setIsAuthReady(true);
       }
-      setIsAuthReady(true);
     });
     return () => unsubscribe();
   }, []);
@@ -110,15 +129,15 @@ export function useFirebase() {
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, 'teamMembers'));
 
+    const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+      setAllUsers(snapshot.docs.map(doc => doc.data() as UserRole));
+    }, (error) => handleFirestoreError(error, OperationType.GET, 'users'));
+
     let unsubMessages = () => {};
-    let unsubUsers = () => {};
     if (isAdmin) {
       unsubMessages = onSnapshot(query(collection(db, 'messages'), orderBy('createdAt', 'desc')), (snapshot) => {
         setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Message[]);
       }, (error) => handleFirestoreError(error, OperationType.GET, 'messages'));
-      unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
-        setAllUsers(snapshot.docs.map(doc => doc.data() as UserRole));
-      }, (error) => handleFirestoreError(error, OperationType.GET, 'users'));
     }
 
     setLoading(false);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2, Phone, Mail, Anchor } from 'lucide-react';
@@ -116,6 +116,17 @@ export function ServiceDetail() {
   const { slug } = useParams();
   const { services, settings } = useFirebase();
   const service = services.find(s => s.slug === slug);
+
+  useEffect(() => {
+    if (service) {
+      document.title = service.metaTitle || `${service.title} | ${settings.companyName || 'ARKINOX'}`;
+      
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', service.metaDescription || service.description || '');
+      }
+    }
+  }, [service, settings]);
 
   if (!service) {
     return (

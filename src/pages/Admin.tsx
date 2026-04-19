@@ -1,10 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+
+const quillStyles = `
+  .ql-container {
+    min-height: 300px;
+    font-family: inherit;
+    font-size: 16px;
+  }
+  .ql-editor {
+    min-height: 300px;
+  }
+  .ql-toolbar.ql-snow {
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    border-color: #e5e7eb;
+    background: #f9fafb;
+  }
+  .ql-container.ql-snow {
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+    border-color: #e5e7eb;
+  }
+`;
+
+import { GoogleGenAI } from "@google/genai";
 import { 
   LayoutDashboard, Settings, FileText, Briefcase, Users, MessageSquare, 
   LogOut, Plus, Edit2, Trash2, Save, X, Image as ImageIcon, 
   Eye, EyeOff, ChevronRight, Search, Filter, AlertCircle, CheckCircle2,
-  Palette, Type, Globe, Mail, Phone, MapPin, Facebook, Instagram, Linkedin, Camera
+  Palette, Type, Globe, Mail, Phone, MapPin, Facebook, Instagram, Linkedin, Camera,
+  User as UserIcon, UserPlus, Sparkles, Wand2, Loader2
 } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
 import { 
@@ -16,10 +43,12 @@ import { Service, Project, BlogPost, TeamMember, SiteSettings, Message } from '.
 
 export default function Admin() {
   const { user, isAdmin, isAuthor, isAuthReady, settings, services, projects, blogPosts, teamMembers, messages, allUsers, loading } = useFirebase();
-  const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'services' | 'projects' | 'blog' | 'team' | 'messages' | 'users'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'services' | 'projects' | 'blog' | 'team' | 'messages' | 'users' | 'profile'>('overview');
+  const [blogEditorTab, setBlogEditorTab] = useState<'edit' | 'preview'>('edit');
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -32,6 +61,31 @@ export default function Admin() {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<'admin' | 'author'>('author');
+  const [newUserDisplayName, setNewUserDisplayName] = useState('');
+  const [newUserBio, setNewUserBio] = useState('');
+  const [newUserPhotoURL, setNewUserPhotoURL] = useState('');
+
+  // My Profile State
+  const [myProfile, setMyProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (user && !myProfile && allUsers.length > 0) {
+      const current = allUsers.find(u => u.uid === user.uid);
+      if (current) {
+        setMyProfile(current);
+      } else {
+        setMyProfile({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || '',
+          photoURL: user.photoURL || '',
+          bio: '',
+          linkedin: '',
+          instagram: ''
+        });
+      }
+    }
+  }, [user, allUsers]);
 
   useEffect(() => {
     if (success || error) {
@@ -42,6 +96,15 @@ export default function Admin() {
       return () => clearTimeout(timer);
     }
   }, [success, error]);
+
+  useEffect(() => {
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = quillStyles;
+    document.head.appendChild(styleSheet);
+    return () => {
+      document.head.removeChild(styleSheet);
+    };
+  }, []);
 
   if (!isAuthReady || loading) {
     return (
@@ -97,7 +160,14 @@ export default function Admin() {
                   onChange={(e) => setLoginPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-red-500 text-sm">{error}</p>}
+              {error && (
+                <div className="bg-red-50 border border-red-200 p-4 rounded-xl space-y-2">
+                  <p className="text-red-600 text-sm font-bold">{error}</p>
+                  <p className="text-[10px] text-red-400 font-mono break-all">
+                    Current Domain: {window.location.hostname}
+                  </p>
+                </div>
+              )}
               <button 
                 type="submit"
                 className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:bg-secondary transition-all shadow-xl"
@@ -115,7 +185,26 @@ export default function Admin() {
           ) : (
             <div className="space-y-4">
               <button 
-                onClick={loginWithGoogle}
+                onClick={async () => {
+                  setError(null);
+                  try {
+                    await loginWithGoogle();
+                  } catch (err: any) {
+                    console.error("Google login failed:", err);
+                    const errorCode = err.code || 'unknown';
+                    const errorMessage = err.message || 'Authentication failed';
+                    
+                    if (errorCode === 'auth/popup-blocked') {
+                      setError('Popup blocked! Please enable popups for this site in your browser settings.');
+                    } else if (errorCode === 'auth/unauthorized-domain') {
+                      setError(`Domain Unauthorized: This website's domain is not yet authorized in the Firebase Console. [Code: ${errorCode}]`);
+                    } else if (errorCode === 'auth/cancelled-popup-request') {
+                      // Silently handle
+                    } else {
+                      setError(`${errorMessage} [Code: ${errorCode}]`);
+                    }
+                  }
+                }}
                 className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-secondary transition-all shadow-xl"
               >
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-6 h-6 bg-white rounded-full p-1" />
@@ -132,6 +221,15 @@ export default function Admin() {
                 <Mail size={20} />
                 Sign in with Email
               </button>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 p-4 rounded-xl space-y-2 mt-4">
+                  <p className="text-red-600 text-sm font-bold">{error}</p>
+                  <p className="text-[10px] text-red-400 font-mono break-all">
+                    Current Domain: {window.location.hostname}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </motion.div>
@@ -156,9 +254,25 @@ export default function Admin() {
     setIsSubmitting(true);
     setError(null);
     try {
-      const id = data.id || Math.random().toString(36).substring(2, 15);
+      const id = data.uid || data.id || doc(collection(db, collectionName)).id;
       const { id: _, ...cleanData } = data;
-      await setDoc(doc(collection(db, collectionName), id), cleanData);
+
+      // Auto-set author for new blog posts
+      if (collectionName === 'blogPosts' && !data.id) {
+        cleanData.authorId = user.uid;
+        cleanData.authorName = myProfile?.displayName || user.displayName || user.email?.split('@')[0];
+        cleanData.authorImage = myProfile?.photoURL || user.photoURL || '';
+        cleanData.authorBio = myProfile?.bio || '';
+      }
+
+      // Transformation for tags in blog posts
+      if (collectionName === 'blogPosts') {
+        if (typeof cleanData.tags === 'string') {
+          cleanData.tags = cleanData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t !== '');
+        }
+      }
+
+      await setDoc(doc(collection(db, collectionName), id), cleanData, { merge: true });
       setSuccess('Item saved successfully!');
       setIsModalOpen(false);
       setEditingItem(null);
@@ -196,11 +310,19 @@ export default function Admin() {
       await setDoc(doc(db, 'users', newUser.uid), {
         uid: newUser.uid,
         email: newUser.email,
-        role: newUserRole
+        role: newUserRole,
+        displayName: newUserDisplayName || newUserEmail.split('@')[0],
+        bio: newUserBio,
+        photoURL: newUserPhotoURL,
+        linkedin: '',
+        instagram: ''
       });
       setSuccess(`${newUserRole === 'admin' ? 'Admin' : 'Author'} user created successfully!`);
       setNewUserEmail('');
       setNewUserPassword('');
+      setNewUserDisplayName('');
+      setNewUserBio('');
+      setNewUserPhotoURL('');
     } catch (err: any) {
       console.error('Error creating user:', err);
       setError(err.message || 'Failed to create user.');
@@ -244,11 +366,71 @@ export default function Admin() {
 
   const handleUpdateRole = async (uid: string, newRole: 'admin' | 'author' | 'user') => {
     try {
-      await setDoc(doc(db, 'users', uid), { role: newRole }, { merge: true });
+      await updateDoc(doc(db, 'users', uid), { role: newRole });
       setSuccess('User role updated successfully!');
     } catch (err) {
       console.error('Error updating role:', err);
       setError('Failed to update user role.');
+    }
+  };
+
+  const handleToggleBlock = async (uid: string, currentStatus: boolean) => {
+    try {
+      await updateDoc(doc(db, 'users', uid), { isBlocked: !currentStatus });
+      setSuccess(`User ${!currentStatus ? 'blocked' : 'unblocked'} successfully!`);
+    } catch (err) {
+      console.error('Error toggling block:', err);
+      setError('Failed to update block status.');
+    }
+  };
+
+  const handleGenerateAIImage = async () => {
+    if (!editingItem?.title) {
+      setError('Please provide a title to generate an image.');
+      return;
+    }
+    
+    setIsGeneratingImage(true);
+    setError(null);
+    
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const prompt = `Create a high-quality blog post banner image for a professional construction and logistics firm. 
+      Title: "${editingItem.title}"
+      ${editingItem.excerpt ? `Context: ${editingItem.excerpt}` : ''}
+      Style: Professional, clean, modern, architectural photography style. Use a professional blue and orange color palette matching the brand identity.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [{ text: prompt }],
+        },
+        config: {
+          imageConfig: {
+            aspectRatio: "16:9"
+          }
+        }
+      });
+
+      let imageUrl = null;
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          imageUrl = `data:image/png;base64,${part.inlineData.data}`;
+          break;
+        }
+      }
+
+      if (imageUrl) {
+        setEditingItem({ ...editingItem, imageUrl });
+        setSuccess('AI Image generated successfully!');
+      } else {
+        throw new Error('No image was generated in the response.');
+      }
+    } catch (err: any) {
+      console.error('Error generating AI image:', err);
+      setError('Failed to generate AI image. ' + (err.message || ''));
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -271,6 +453,7 @@ export default function Admin() {
     { id: 'team', label: 'Team Members', icon: <Users size={20} />, roles: ['admin'] },
     { id: 'messages', label: 'Messages', icon: <MessageSquare size={20} />, roles: ['admin'] },
     { id: 'users', label: 'User Management', icon: <Users size={20} />, roles: ['admin'] },
+    { id: 'profile', label: 'My Profile', icon: <UserIcon size={20} />, roles: ['admin', 'author'] },
     { id: 'settings', label: 'Site Settings', icon: <Settings size={20} />, roles: ['admin'] },
   ].filter(item => item.roles.includes(isAdmin ? 'admin' : 'author'));
 
@@ -385,44 +568,101 @@ export default function Admin() {
                   <h3 className="text-2xl font-bold text-primary">Create New User</h3>
                   <p className="text-gray-500">Add a new administrator or author with email and password access.</p>
                 </div>
-                <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end" onSubmit={handleCreateUser}>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-500 uppercase">Email Address</label>
-                    <input 
-                      type="email" 
-                      required
-                      placeholder="user@arkinox.com"
-                      className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
-                      value={newUserEmail}
-                      onChange={(e) => setNewUserEmail(e.target.value)}
-                    />
+                <form className="space-y-6" onSubmit={handleCreateUser}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-500 uppercase">Full Name</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="Author Name"
+                        className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
+                        value={newUserDisplayName}
+                        onChange={(e) => setNewUserDisplayName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-500 uppercase">Email Address</label>
+                      <input 
+                        type="email" 
+                        required
+                        placeholder="user@arkinox.com"
+                        className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
+                        value={newUserEmail}
+                        onChange={(e) => setNewUserEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-500 uppercase">Password</label>
+                      <input 
+                        type="password" 
+                        required
+                        placeholder="••••••••"
+                        className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
+                        value={newUserPassword}
+                        onChange={(e) => setNewUserPassword(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-500 uppercase">Role</label>
+                      <select 
+                        className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary"
+                        value={newUserRole}
+                        onChange={(e) => setNewUserRole(e.target.value as 'admin' | 'author')}
+                      >
+                        <option value="author">Author (Blog Only)</option>
+                        <option value="admin">Administrator (Full Access)</option>
+                      </select>
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-500 uppercase">Password</label>
-                    <input 
-                      type="password" 
-                      required
-                      placeholder="••••••••"
-                      className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
-                      value={newUserPassword}
-                      onChange={(e) => setNewUserPassword(e.target.value)}
-                    />
+                    <label className="text-sm font-bold text-gray-500 uppercase">Profile Photo Selection</label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-accent bg-accent shrink-0">
+                        {newUserPhotoURL ? (
+                          <img src={newUserPhotoURL} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <UserIcon size={24} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                         <input 
+                          type="text" 
+                          placeholder="Photo URL (optional)"
+                          className="w-full bg-accent border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-secondary" 
+                          value={newUserPhotoURL}
+                          onChange={(e) => setNewUserPhotoURL(e.target.value)}
+                        />
+                        <label className="bg-white border border-gray-200 px-4 py-2 rounded-xl cursor-pointer hover:bg-accent transition-all text-xs font-bold text-primary flex items-center gap-2 w-fit">
+                          <Camera size={14} />
+                          Upload Photo
+                          <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onloadend = () => setNewUserPhotoURL(reader.result as string);
+                            reader.readAsDataURL(file);
+                          }} />
+                        </label>
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-500 uppercase">Role</label>
-                    <select 
-                      className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary"
-                      value={newUserRole}
-                      onChange={(e) => setNewUserRole(e.target.value as 'admin' | 'author')}
-                    >
-                      <option value="author">Author (Blog Only)</option>
-                      <option value="admin">Administrator (Full Access)</option>
-                    </select>
+                    <label className="text-sm font-bold text-gray-500 uppercase">Bio / Autobiography</label>
+                    <textarea 
+                      rows={3}
+                      placeholder="Tell us about the author..."
+                      className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
+                      value={newUserBio}
+                      onChange={(e) => setNewUserBio(e.target.value)}
+                    />
                   </div>
                   <button 
                     disabled={isSubmitting}
                     type="submit"
-                    className="bg-primary text-white py-4 rounded-xl font-bold hover:bg-secondary transition-all disabled:opacity-50"
+                    className="bg-primary text-white py-4 px-8 rounded-xl font-bold hover:bg-secondary transition-all disabled:opacity-50"
                   >
                     {isSubmitting ? 'Creating...' : 'Create User'}
                   </button>
@@ -432,43 +672,189 @@ export default function Admin() {
               {/* Users List */}
               <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-accent text-primary font-bold uppercase text-xs tracking-wider">
-                    <tr>
-                      <th className="p-6">Email</th>
-                      <th className="p-6">Role</th>
-                      <th className="p-6">UID</th>
-                      <th className="p-6 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {allUsers.map((u) => (
-                      <tr key={u.uid} className="hover:bg-accent/50 transition-colors">
-                        <td className="p-6 font-bold text-primary">{u.email}</td>
-                        <td className="p-6">
-                          {u.email === user.email ? (
-                            <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase">{u.role}</span>
-                          ) : (
-                            <select 
-                              className="bg-accent border border-gray-200 rounded-lg px-3 py-1 text-xs font-bold uppercase text-primary focus:outline-none focus:border-secondary"
-                              value={u.role}
-                              onChange={(e) => handleUpdateRole(u.uid, e.target.value as any)}
-                            >
-                              <option value="author">Author</option>
-                              <option value="admin">Admin</option>
-                              <option value="user">User</option>
-                            </select>
-                          )}
-                        </td>
-                        <td className="p-6 text-xs font-mono text-gray-400">{u.uid}</td>
-                        <td className="p-6 text-right">
-                          {u.email !== user.email && (
-                            <button onClick={() => handleDelete('users', u.uid)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={18} /></button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
+                      <thead className="bg-accent text-primary font-bold uppercase text-xs tracking-wider">
+                        <tr>
+                          <th className="p-6">User</th>
+                          <th className="p-6">Role</th>
+                          <th className="p-6">Status</th>
+                          <th className="p-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {allUsers.map((u) => (
+                          <tr key={u.uid} className={cn("transition-colors", u.isBlocked ? "bg-red-50/30" : "hover:bg-accent/50")}>
+                            <td className="p-6">
+                              <div className="flex items-center gap-3">
+                                <img src={u.photoURL || 'https://picsum.photos/seed/user/100/100'} className="w-10 h-10 rounded-full object-cover" />
+                                <div>
+                                  <p className="font-bold text-primary">{u.displayName || u.email.split('@')[0]}</p>
+                                  <p className="text-xs text-gray-400">{u.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-6">
+                              {u.email === user.email ? (
+                                <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase">{u.role}</span>
+                              ) : (
+                                <select 
+                                  className="bg-accent border border-gray-200 rounded-lg px-3 py-1 text-xs font-bold uppercase text-primary focus:outline-none focus:border-secondary"
+                                  value={u.role}
+                                  onChange={(e) => handleUpdateRole(u.uid, e.target.value as any)}
+                                >
+                                  <option value="author">Author</option>
+                                  <option value="admin">Admin</option>
+                                  <option value="user">User</option>
+                                </select>
+                              )}
+                            </td>
+                            <td className="p-6">
+                              {u.isBlocked ? (
+                                <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold uppercase flex items-center gap-1 w-fit"><AlertCircle size={10} /> BLOCKED</span>
+                              ) : (
+                                <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold uppercase flex items-center gap-1 w-fit"><CheckCircle2 size={10} /> ACTIVE</span>
+                              )}
+                            </td>
+                            <td className="p-6 text-right space-x-2">
+                              {u.email !== user.email && (
+                                <>
+                                  <button 
+                                    onClick={() => handleToggleBlock(u.uid, !!u.isBlocked)} 
+                                    title={u.isBlocked ? 'Unblock User' : 'Block User'}
+                                    className={cn("p-2 rounded-lg transition-colors", u.isBlocked ? "text-green-500 hover:bg-green-50" : "text-orange-500 hover:bg-orange-50")}
+                                  >
+                                    {u.isBlocked ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                                  </button>
+                                  <button onClick={() => { setEditingItem(u); setIsModalOpen(true); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Profile"><Edit2 size={18} /></button>
+                                  <button onClick={() => handleDelete('users', u.uid)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete User"><Trash2 size={18} /></button>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'profile' && myProfile && (
+            <div className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 space-y-10">
+              <div className="flex items-center gap-6 pb-8 border-b border-gray-100">
+                <div className="relative">
+                  <img 
+                    src={myProfile.photoURL || 'https://picsum.photos/seed/user/200/200'} 
+                    alt="Profile" 
+                    className="w-24 h-24 rounded-2xl object-cover border-4 border-accent shadow-lg" 
+                    referrerPolicy="no-referrer"
+                  />
+                  <label className="absolute -bottom-2 -right-2 bg-secondary text-white p-2 rounded-lg cursor-pointer hover:scale-110 transition-transform shadow-md">
+                    <Camera size={16} />
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onloadend = () => setMyProfile({ ...myProfile, photoURL: reader.result as string });
+                      reader.readAsDataURL(file);
+                    }} />
+                  </label>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-primary">{myProfile.displayName || 'No Name Set'}</h3>
+                  <p className="text-gray-500">{myProfile.email} • <span className="uppercase font-bold text-xs bg-accent text-primary px-2 py-0.5 rounded">{myProfile.role}</span></p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-500 uppercase">Display Name</label>
+                    <input 
+                      type="text" 
+                      className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
+                      value={myProfile.displayName || ''}
+                      onChange={(e) => setMyProfile({ ...myProfile, displayName: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-500 uppercase">Bio / Autobiography</label>
+                    <textarea 
+                      rows={5}
+                      className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
+                      value={myProfile.bio || ''}
+                      onChange={(e) => setMyProfile({ ...myProfile, bio: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-500 uppercase flex items-center gap-2"><Linkedin size={16} /> LinkedIn URL</label>
+                    <input 
+                      type="text" 
+                      className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
+                      value={myProfile.linkedin || ''}
+                      onChange={(e) => setMyProfile({ ...myProfile, linkedin: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-500 uppercase flex items-center gap-2"><Instagram size={16} /> Instagram URL</label>
+                    <input 
+                      type="text" 
+                      className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
+                      value={myProfile.instagram || ''}
+                      onChange={(e) => setMyProfile({ ...myProfile, instagram: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-500 uppercase">Profile Picture URL or Upload</label>
+                    <div className="flex flex-col gap-2">
+                      <input 
+                        type="text" 
+                        className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
+                        value={myProfile.photoURL || ''}
+                        onChange={(e) => setMyProfile({ ...myProfile, photoURL: e.target.value })}
+                        placeholder="https://example.com/photo.jpg"
+                      />
+                      <label className="bg-white border border-gray-200 px-4 py-2 rounded-xl cursor-pointer hover:bg-accent transition-all text-xs font-bold text-primary flex items-center gap-2 w-fit">
+                        <Camera size={14} />
+                        Upload New Photo
+                        <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onloadend = () => setMyProfile({ ...myProfile, photoURL: reader.result as string });
+                          reader.readAsDataURL(file);
+                        }} />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-gray-100 flex justify-end">
+                <button 
+                  onClick={async () => {
+                    setIsSubmitting(true);
+                    try {
+                      await updateDoc(doc(db, 'users', myProfile.uid), {
+                        displayName: myProfile.displayName,
+                        bio: myProfile.bio,
+                        photoURL: myProfile.photoURL,
+                        linkedin: myProfile.linkedin,
+                        instagram: myProfile.instagram
+                      });
+                      setSuccess('Profile updated successfully!');
+                    } catch (err) {
+                      console.error('Profile update error:', err);
+                      setError('Failed to update profile.');
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  disabled={isSubmitting}
+                  className="bg-primary text-white px-10 py-4 rounded-xl font-bold flex items-center gap-2 hover:bg-secondary transition-all shadow-xl disabled:opacity-50"
+                >
+                  <Save size={20} /> {isSubmitting ? 'Saving...' : 'Save Changes'}
+                </button>
               </div>
             </div>
           )}
@@ -564,7 +950,7 @@ export default function Admin() {
                           <span className="font-bold text-primary">{post.title}</span>
                         </div>
                       </td>
-                      <td className="p-6 text-gray-500">{post.author}</td>
+                      <td className="p-6 text-gray-500">{post.authorName || post.author || 'Author'}</td>
                       <td className="p-6 text-gray-500">{new Date(post.publishedAt).toLocaleDateString()}</td>
                       <td className="p-6 text-right space-x-2">
                         <button onClick={() => { setEditingItem(post); setIsModalOpen(true); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 size={18} /></button>
@@ -899,6 +1285,24 @@ export default function Admin() {
                         </div>
                       </div>
                     </div>
+
+                    <div className="bg-accent/30 p-6 rounded-2xl border border-dashed border-gray-200 space-y-4">
+                      <div className="flex items-center gap-2 text-primary font-bold text-sm uppercase">
+                        <Globe size={16} className="text-secondary" />
+                        SEO Optimization
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase">Search Engine Title</label>
+                          <input type="text" className="w-full bg-white border border-gray-100 rounded-lg p-3 text-sm" placeholder="Custom Browser Title" value={editingItem?.metaTitle || ''} onChange={(e) => setEditingItem({ ...editingItem, metaTitle: e.target.value })} />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase">Search Engine Description</label>
+                          <textarea rows={1} className="w-full bg-white border border-gray-100 rounded-lg p-3 text-sm" placeholder="Short SEO snippet..." value={editingItem?.metaDescription || ''} onChange={(e) => setEditingItem({ ...editingItem, metaDescription: e.target.value })} />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="flex items-center gap-4">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" className="w-5 h-5 rounded border-gray-300 text-secondary focus:ring-secondary" checked={editingItem?.isVisible ?? true} onChange={(e) => setEditingItem({ ...editingItem, isVisible: e.target.checked })} />
@@ -967,8 +1371,8 @@ export default function Admin() {
                     </div>
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-500 uppercase">Author</label>
-                        <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.author || ''} onChange={(e) => setEditingItem({ ...editingItem, author: e.target.value })} />
+                        <label className="text-sm font-bold text-gray-500 uppercase">Author Name (Display)</label>
+                        <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.authorName || editingItem?.author || ''} onChange={(e) => setEditingItem({ ...editingItem, authorName: e.target.value })} />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-bold text-gray-500 uppercase">Published At</label>
@@ -980,29 +1384,170 @@ export default function Admin() {
                       <textarea rows={2} className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.excerpt || ''} onChange={(e) => setEditingItem({ ...editingItem, excerpt: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-500 uppercase">Content (Markdown)</label>
-                      <textarea rows={10} className="w-full bg-accent border border-gray-200 rounded-xl p-4 font-mono text-sm" value={editingItem?.content || ''} onChange={(e) => setEditingItem({ ...editingItem, content: e.target.value })} />
+                      <label className="text-sm font-bold text-gray-500 uppercase italic">Tags (comma-separated)</label>
+                      <input 
+                        type="text" 
+                        className="w-full bg-accent border border-gray-200 rounded-xl p-4" 
+                        value={Array.isArray(editingItem?.tags) ? editingItem.tags.join(', ') : (editingItem?.tags || '')} 
+                        onChange={(e) => setEditingItem({ ...editingItem, tags: e.target.value })} 
+                        placeholder="HSE, Logistics, Construction, Safety"
+                      />
+                      <p className="text-[10px] text-gray-400">Enter tags separated by commas. They will be stored as searchable keywords.</p>
                     </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-bold text-gray-500 uppercase">Content</label>
+                        <div className="flex bg-accent rounded-lg p-1">
+                          <button 
+                            type="button"
+                            onClick={() => setBlogEditorTab('edit')}
+                            className={cn("px-4 py-1.5 rounded-md text-xs font-bold transition-all", blogEditorTab === 'edit' ? "bg-white text-primary shadow-sm" : "text-gray-400 hover:text-primary")}
+                          >
+                            Editor
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => setBlogEditorTab('preview')}
+                            className={cn("px-4 py-1.5 rounded-md text-xs font-bold transition-all", blogEditorTab === 'preview' ? "bg-white text-primary shadow-sm" : "text-gray-400 hover:text-primary")}
+                          >
+                            <span className="flex items-center gap-1"><Eye size={12} /> Live Preview</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {blogEditorTab === 'edit' ? (
+                        <div className="bg-white rounded-xl overflow-hidden border border-gray-200">
+                          <ReactQuill 
+                            theme="snow" 
+                            value={editingItem?.content || ''} 
+                            onChange={(content) => setEditingItem({ ...editingItem, content })}
+                            modules={{
+                              toolbar: [
+                                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                                [{ 'font': [] }],
+                                [{ 'size': ['small', false, 'large', 'huge'] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                ['blockquote', 'link', 'image', 'video'],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'align': [] }],
+                                ['link', 'image', 'video'],
+                                ['clean']
+                              ],
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="bg-white rounded-xl border border-gray-200 p-8 min-h-[400px] overflow-y-auto prose max-w-none">
+                           <div className="markdown-body">
+                             {editingItem?.content?.includes('<') && editingItem?.content?.includes('>') ? (
+                               <div dangerouslySetInnerHTML={{ __html: editingItem.content }} />
+                             ) : (
+                               <div className="whitespace-pre-wrap">{editingItem?.content}</div>
+                             )}
+                           </div>
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-400">Use the tabs to switch between the rich text editor and a high-fidelity preview of how your post will look.</p>
+                    </div>
+
+                    <div className="bg-accent/30 p-6 rounded-2xl border border-dashed border-gray-200 space-y-4">
+                      <div className="flex items-center gap-2 text-primary font-bold text-sm uppercase">
+                        <Globe size={16} className="text-secondary" />
+                        SEO Optimization
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase">Search Engine Title</label>
+                          <input type="text" className="w-full bg-white border border-gray-100 rounded-lg p-3 text-sm" placeholder="Custom Browser Title" value={editingItem?.metaTitle || ''} onChange={(e) => setEditingItem({ ...editingItem, metaTitle: e.target.value })} />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase">Search Engine Description</label>
+                          <textarea rows={1} className="w-full bg-white border border-gray-100 rounded-lg p-3 text-sm" placeholder="Short SEO snippet..." value={editingItem?.metaDescription || ''} onChange={(e) => setEditingItem({ ...editingItem, metaDescription: e.target.value })} />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-500 uppercase">Image URL or Upload</label>
+                      <label className="text-sm font-bold text-gray-500 uppercase">Banner Image URL or Upload</label>
                       <div className="flex flex-col gap-4">
-                        <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.imageUrl || ''} onChange={(e) => setEditingItem({ ...editingItem, imageUrl: e.target.value })} placeholder="/blog-image.jpg" />
+                        <div className="relative group">
+                          <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4 pr-32" value={editingItem?.imageUrl || ''} onChange={(e) => setEditingItem({ ...editingItem, imageUrl: e.target.value })} placeholder="/blog-image.jpg" />
+                          <div className="absolute right-2 top-2 bottom-2 flex gap-2">
+                            <button 
+                              type="button" 
+                              onClick={handleGenerateAIImage}
+                              disabled={isGeneratingImage}
+                              className="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-secondary transition-all disabled:opacity-50"
+                            >
+                              {isGeneratingImage ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                              {isGeneratingImage ? 'Generating...' : 'AI Generate'}
+                            </button>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-4">
                           <label className="bg-white border border-gray-200 px-4 py-2 rounded-xl cursor-pointer hover:bg-accent transition-all text-sm font-bold text-primary flex items-center gap-2">
                             <Camera size={18} />
                             Upload Image
                             <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'imageUrl')} />
                           </label>
-                          {editingItem?.imageUrl?.startsWith('data:image') && (
-                            <span className="text-xs text-green-600 font-bold flex items-center gap-1">
-                              <CheckCircle2 size={14} /> Image Attached
-                            </span>
+                          {editingItem?.imageUrl && (
+                             <div className="w-32 h-18 rounded-lg overflow-hidden border border-gray-200 bg-accent shrink-0">
+                               <img src={editingItem.imageUrl} className="w-full h-full object-cover" />
+                             </div>
                           )}
                         </div>
                       </div>
-                      <p className="text-xs text-gray-400">Use /filename.ext for images in the public folder, or upload an image directly (max 800KB).</p>
                     </div>
                   </>
+                )}
+
+                {activeTab === 'users' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-4">
+                         <div className="relative">
+                            <img src={editingItem.photoURL || 'https://picsum.photos/seed/user/200/200'} className="w-20 h-20 rounded-2xl object-cover border-2 border-accent" />
+                            <label className="absolute -bottom-1 -right-1 bg-secondary text-white p-1 rounded cursor-pointer"><Camera size={12} />
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'photoURL')} />
+                            </label>
+                         </div>
+                         <div>
+                            <p className="font-bold text-primary">{editingItem.email}</p>
+                            <p className="text-xs text-gray-400">Editing Profile Information</p>
+                         </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-500 uppercase">Display Name</label>
+                        <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.displayName || ''} onChange={(e) => setEditingItem({ ...editingItem, displayName: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-500 uppercase">Bio / Autobiography</label>
+                        <textarea rows={4} className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.bio || ''} onChange={(e) => setEditingItem({ ...editingItem, bio: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-500 uppercase">LinkedIn URL</label>
+                        <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.linkedin || ''} onChange={(e) => setEditingItem({ ...editingItem, linkedin: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-500 uppercase">Instagram URL</label>
+                        <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.instagram || ''} onChange={(e) => setEditingItem({ ...editingItem, instagram: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-500 uppercase">Photo URL or Upload</label>
+                        <div className="flex flex-col gap-2">
+                          <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.photoURL || ''} onChange={(e) => setEditingItem({ ...editingItem, photoURL: e.target.value })} placeholder="https://example.com/photo.jpg" />
+                          <label className="bg-white border border-gray-200 px-4 py-2 rounded-xl cursor-pointer hover:bg-accent transition-all text-xs font-bold text-primary flex items-center gap-2 w-fit">
+                            <Camera size={14} />
+                            Upload New Photo
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'photoURL')} />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 {activeTab === 'team' && (

@@ -20,11 +20,22 @@
 }
 
 .markdown-body {
-  @apply max-w-none;
+  @apply max-w-none text-gray-800;
 }
 
-.markdown-body h1 { @apply text-3xl font-bold mb-4; }
-.markdown-body h2 { @apply text-2xl font-bold mb-3 mt-6; }
-.markdown-body p { @apply mb-4 leading-relaxed; }
-.markdown-body ul { @apply list-disc pl-6 mb-4; }
-.markdown-body li { @apply mb-1; }
+.markdown-body h1 { @apply text-4xl font-bold mb-6 mt-10 text-primary; }
+.markdown-body h2 { @apply text-3xl font-bold mb-4 mt-8 text-primary/90; }
+.markdown-body h3 { @apply text-2xl font-bold mb-4 mt-6 text-primary/80; }
+.markdown-body p { @apply mb-6 leading-relaxed text-lg; }
+.markdown-body ul { @apply list-disc pl-8 mb-6 space-y-2; }
+.markdown-body ol { @apply list-decimal pl-8 mb-6 space-y-2; }
+.markdown-body li { @apply leading-relaxed; }
+.markdown-body blockquote { @apply border-l-4 border-secondary pl-6 py-2 italic text-gray-600 mb-6 bg-accent/50 rounded-r-lg; }
+.markdown-body img { @apply rounded-2xl shadow-lg my-8 max-w-full h-auto; }
+.markdown-body a { @apply text-secondary font-bold hover:underline; }
+.markdown-body strong { @apply font-bold text-primary; }
+
+/* Quill specific alignment classes if applicable */
+.markdown-body .ql-align-center { text-align: center; }
+.markdown-body .ql-align-right { text-align: right; }
+.markdown-body .ql-align-justify { text-align: justify; }

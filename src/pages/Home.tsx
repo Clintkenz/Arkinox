@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2, Users, Briefcase, Globe, Anchor } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2, Users, Briefcase, Globe, Anchor, LogIn, ChevronRight } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
 import { cn, cleanImageUrl } from '../lib/utils';
 
@@ -15,6 +15,7 @@ const iconMap: Record<string, React.ReactNode> = {
 
 export default function Home() {
   const { services, projects, blogPosts, teamMembers, settings } = useFirebase();
+  const [showLoginLinks, setShowLoginLinks] = useState(false);
 
   const stats = [
     { label: 'Projects Completed', value: '50+', icon: <Briefcase /> },
@@ -250,6 +251,43 @@ export default function Home() {
                   Call Us Now
                 </a>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Custom Bottom Section for Private Links */}
+      <section className="py-12 bg-gray-50 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <div>
+            <h3 className="text-xl font-bold text-primary mb-6 flex items-center gap-2">
+              Quick Links
+            </h3>
+            <div className="space-y-4">
+              <button 
+                onClick={() => setShowLoginLinks(!showLoginLinks)}
+                className="text-gray-500 hover:text-secondary flex items-center gap-2 transition-colors font-medium text-sm"
+              >
+                <LogIn size={14} /> Login
+              </button>
+              
+              <AnimatePresence>
+                {showLoginLinks && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="pl-6 space-y-3 overflow-hidden"
+                  >
+                    <Link to="/author" className="text-gray-400 hover:text-secondary flex items-center gap-2 text-sm transition-colors">
+                      <ChevronRight size={12} /> Author Login
+                    </Link>
+                    <Link to="/admin" className="text-gray-400 hover:text-secondary flex items-center gap-2 text-sm transition-colors">
+                      <ChevronRight size={12} /> Admin Login
+                    </Link>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>

@@ -78,7 +78,7 @@ export default function About() {
             className="grid grid-cols-2 gap-1.8"
           >
             <img src={cleanImageUrl("/Arkinox headquarters and branded vehicles.png")} alt="Team" className="rounded-2xl shadow-lg mt-12" referrerPolicy="no-referrer" />
-            <img src={cleanImageUrl("/public/supply cordination-1.png")} alt="Team" className="rounded-2xl shadow-lg" referrerPolicy="no-referrer" />
+            <img src={cleanImageUrl("/supply cordination-1.png")} alt="Team" className="rounded-2xl shadow-lg" referrerPolicy="no-referrer" />
           </motion.div>
         </div>
       </section>
@@ -135,9 +135,9 @@ export default function About() {
                 transition={{ delay: i * 0.1 }}
                 className="group"
               >
-                <div className="relative overflow-hidden rounded-3xl aspect-[4/5] mb-6 shadow-xl">
+                <div className="relative overflow-hidden rounded-3xl aspect-square mb-6 shadow-xl">
                   <img 
-                    src={member.imageUrl} 
+                    src={cleanImageUrl(member.imageUrl)} 
                     alt={member.name} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     referrerPolicy="no-referrer"

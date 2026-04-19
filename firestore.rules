@@ -79,15 +79,21 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isNotBlocked() {
+      return !isAuthenticated() || 
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBlocked', false) == false;
+    }
+
     function isAdmin() {
-      return isAuthenticated() && (
+      return isAuthenticated() && isNotBlocked() && (
         (request.auth.token.email == "ekenzeclinton@gmail.com" && request.auth.token.email_verified == true) ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
     }
 
     function isAuthor() {
-      return isAuthenticated() && (
+      return isAuthenticated() && isNotBlocked() && (
         isAdmin() ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'author')
       );
@@ -133,7 +139,8 @@ service cloud.firestore {
     // Blog Posts
     match /blogPosts/{postId} {
       allow read: if true;
-      allow write: if isAuthor();
+      allow create: if isAuthor();
+      allow update, delete: if isAdmin() || (isAuthor() && resource.data.authorId == request.auth.uid);
     }
 
     // Team Members
@@ -151,10 +158,18 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
-    // Users (Roles)
+    // Users (Roles & Profiles)
     match /users/{userId} {
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      allow write: if isAdmin();
+      allow read: if true;
+      // Only Admins can create/delete users or change roles/blocked status
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        isAuthenticated() && 
+        isNotBlocked() &&
+        request.auth.uid == userId && 
+        // Prevent changing immutable/sensitive fields (role, isBlocked, email)
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'bio', 'photoURL', 'linkedin', 'instagram'])
+      );
     }
   }
 }

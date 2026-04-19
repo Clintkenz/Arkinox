@@ -1,7 +1,8 @@
 import { initializeApp, getApp } from 'firebase/app';
 import { 
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User,
-  signInWithEmailAndPassword, createUserWithEmailAndPassword 
+  signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  setPersistence, browserLocalPersistence 
 } from 'firebase/auth';
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, Timestamp, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
@@ -10,7 +11,14 @@ import firebaseConfig from '../firebase-applet-config.json';
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
+
+// Set local persistence for better iframe/cookie reliability
+setPersistence(auth, browserLocalPersistence).catch((err) => {
+  console.error("Auth persistence error:", err);
+});
+
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 // Auth Helpers
 export const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
@@ -76,8 +84,11 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   }
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  console.error('Firestore Error Detailed: ', errInfo);
+  // Don't throw for all errors, some might be transient or expected (like missing docs)
+  if (errInfo.error.includes('permission-denied')) {
+    console.warn('Permission denied - likely unauthorized access attempt.');
+  }
 }
 
 // Test Connection

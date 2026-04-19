@@ -190,7 +190,8 @@ While meeting DPR and Ministry standards is essential, a robust HSE system does 
 We don't just write manuals; we implement systems. From daily toolbox talks to rigorous hazard identification, we ensure that every worker goes home safe, every single day.
     `,
     imageUrl: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=1200",
-    author: "Uche Ekenze",
+    authorId: "default-uche",
+    authorName: "Uche Ekenze",
     publishedAt: new Date().toISOString(),
     tags: ["HSE", "Safety", "Construction"],
     isVisible: true
@@ -213,7 +214,8 @@ The logistics landscape in Port Harcourt and the wider Niger Delta is fraught wi
 Efficiency in procurement isn't just about buying cheap; it's about buying smart. Strategic coordination ensures that the right materials arrive at the right time, every time.
     `,
     imageUrl: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1200",
-    author: "Clinton Ekenze",
+    authorId: "default-clinton",
+    authorName: "Clinton Ekenze",
     publishedAt: new Date().toISOString(),
     tags: ["Procurement", "Logistics", "Oil & Gas"],
     isVisible: true
@@ -236,7 +238,8 @@ Modern machinery is now equipped with sensors that track everything from fuel co
 At ARKINOX, we are integrating these technologies into our fleet management to provide our clients with unprecedented levels of transparency and efficiency.
     `,
     imageUrl: "https://images.unsplash.com/photo-1533991022833-ad44c795c51f?auto=format&fit=crop&q=80&w=1200",
-    author: "Clinton Ekenze",
+    authorId: "default-clinton",
+    authorName: "Clinton Ekenze",
     publishedAt: new Date().toISOString(),
     tags: ["Machinery", "Technology", "Infrastructure"],
     isVisible: true

@@ -43,11 +43,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {settings.socialLinks.facebook && <a href={settings.socialLinks.facebook} target="_blank" rel="noreferrer"><Facebook size={16} className="hover:text-secondary" /></a>}
             {settings.socialLinks.instagram && <a href={settings.socialLinks.instagram} target="_blank" rel="noreferrer"><Instagram size={16} className="hover:text-secondary" /></a>}
             {settings.socialLinks.linkedin && <a href={settings.socialLinks.linkedin} target="_blank" rel="noreferrer"><Linkedin size={16} className="hover:text-secondary" /></a>}
-            {isAdmin && (
-              <Link to="/admin" className="ml-4 bg-secondary px-3 py-1 rounded text-xs font-bold hover:bg-white hover:text-secondary transition-all">
-                ADMIN PANEL
-              </Link>
-            )}
           </div>
         </div>
       </div>
@@ -76,11 +71,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {link.name}
               </Link>
             ))}
-            {!user && (
-              <Link to="/admin" className="flex items-center gap-2 text-primary hover:text-secondary">
-                <LogIn size={18} />
-              </Link>
-            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -104,7 +94,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     key={link.path}
                     to={link.path}
                     className={cn(
-                      "text-lg font-medium py-2",
+                      "text-lg font-medium py-2 border-b border-gray-100",
                       location.pathname === link.path ? "text-secondary" : "text-primary"
                     )}
                     onClick={() => setIsMenuOpen(false)}
@@ -112,11 +102,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     {link.name}
                   </Link>
                 ))}
-                {isAdmin && (
-                  <Link to="/admin" className="bg-primary text-white p-3 rounded text-center font-bold" onClick={() => setIsMenuOpen(false)}>
-                    ADMIN PANEL
-                  </Link>
-                )}
               </div>
             </motion.div>
           )}

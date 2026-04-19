@@ -30,6 +30,8 @@ export interface Service {
   heroImageUrl?: string;
   heroOpacity?: number;
   order: number;
+  metaTitle?: string;
+  metaDescription?: string;
   isVisible: boolean;
 }
 
@@ -52,9 +54,17 @@ export interface BlogPost {
   excerpt: string;
   content: string;
   imageUrl: string;
-  author: string;
+  authorId: string; // Track who wrote it
+  authorName: string; // Denormalized for quick view
+  author?: string; // Legacy
+  authorImage?: string;
+  authorBio?: string;
+  authorLinkedin?: string;
+  authorInstagram?: string;
   publishedAt: string;
   tags: string[];
+  metaTitle?: string;
+  metaDescription?: string;
   isVisible: boolean;
 }
 
@@ -80,4 +90,10 @@ export interface UserRole {
   uid: string;
   email: string;
   role: 'admin' | 'author' | 'user';
+  displayName?: string;
+  bio?: string;
+  photoURL?: string;
+  linkedin?: string;
+  instagram?: string;
+  isBlocked?: boolean;
 }
