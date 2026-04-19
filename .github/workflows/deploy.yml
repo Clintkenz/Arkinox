@@ -30,9 +30,9 @@ jobs:
         with:
           host: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }} # Adding the passphrase for your new key
+          password: ${{ secrets.FTP_PASSWORD }} # Using password again
           port: 22
           source: "dist/*"
           target: "public_html"
           strip_components: 1
+          overwrite: true
