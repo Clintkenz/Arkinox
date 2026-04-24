@@ -23,7 +23,7 @@ export default function About() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/Arkinox headquarters and branded vehicles.png")} 
+            src={cleanImageUrl("/arkinox-headquarters.png")} 
             alt="About Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -77,8 +77,8 @@ export default function About() {
             viewport={{ once: true }}
             className="grid grid-cols-2 gap-1.8"
           >
-            <img src={cleanImageUrl("/Arkinox headquarters and branded vehicles.png")} alt="Team" className="rounded-2xl shadow-lg mt-12" referrerPolicy="no-referrer" />
-            <img src={cleanImageUrl("/supply cordination-1.png")} alt="Team" className="rounded-2xl shadow-lg" referrerPolicy="no-referrer" />
+            <img src={cleanImageUrl("/arkinox-headquarters.png")} alt="Team" className="rounded-2xl shadow-lg mt-12" referrerPolicy="no-referrer" />
+            <img src={cleanImageUrl("/supply-coordination-1.png")} alt="Team" className="rounded-2xl shadow-lg" referrerPolicy="no-referrer" />
           </motion.div>
         </div>
       </section>

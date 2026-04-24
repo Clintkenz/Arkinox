@@ -41,8 +41,8 @@ At ARKINOX, we believe that safety is not just a requirement—it's a core value
 We don't just provide paperwork; we foster a culture of safety that permeates every level of your organization.
     `,
     icon: "ShieldCheck",
-    imageUrl: "/HSE ARKINOX.jpg",
-    heroImageUrl: "/Arkinox HSE consultants reviewing data on-site.png",
+    imageUrl: "/hse-arkinox.jpg",
+    heroImageUrl: "/arkinox-hse-review.png",
     heroOpacity: 15,
     order: 1,
     isVisible: true
@@ -65,8 +65,8 @@ In the oil & gas and construction sectors, supply chain efficiency is the differ
 **The ARKINOX Advantage:** We operate on a coordination model. Clients pay for actual materials directly or through verified channels, ensuring 100% transparency and zero hidden markups.
     `,
     icon: "Truck",
-    imageUrl: "/Sercice delivery.jpg",
-    heroImageUrl: "/Spply Cordination and delivery.jpg",
+    imageUrl: "/services-delivery.jpg",
+    heroImageUrl: "/supply-coordination.jpg",
     heroOpacity: 15,
     order: 2,
     isVisible: true
@@ -90,8 +90,8 @@ Successful projects require meticulous coordination between contractors, vendors
 We bridge the gap between the boardroom and the site, providing the data you need to make informed decisions.
     `,
     icon: "LayoutDashboard",
-    imageUrl: "/Arkinox project-who we are.jpg",
-    heroImageUrl: "/Arkinox headquarters and branded vehicles.png",
+    imageUrl: "/arkinox-project.jpg",
+    heroImageUrl: "/arkinox-headquarters.png",
     heroOpacity: 15,
     order: 3,
     isVisible: true
@@ -115,7 +115,7 @@ Whether it's a small-scale construction site or a major oil & gas facility, we p
     `,
     icon: "HardHat",
     imageUrl: "https://images.unsplash.com/photo-1533991022833-ad44c795c51f?auto=format&fit=crop&q=80&w=1200",
-    heroImageUrl: "/Arkinox-machines.png.png",
+    heroImageUrl: "/arkinox-machines.png",
     heroOpacity: 15,
     order: 4,
     isVisible: true
@@ -138,8 +138,8 @@ The Niger Delta presents unique logistical challenges. ARKINOX provides speciali
 Our local expertise and deep understanding of the maritime landscape make us the ideal partner for swamp and offshore support.
     `,
     icon: "Anchor",
-    imageUrl: "/Marine-Logistics-Support-Services.png.jpg",
-    heroImageUrl: "/A-marine logistics.jpg",
+    imageUrl: "/marine-logistics.jpg",
+    heroImageUrl: "/a-marine-logistics.jpg",
     heroOpacity: 15,
     order: 5,
     isVisible: true
@@ -150,21 +150,21 @@ export const INITIAL_TEAM: Partial<TeamMember>[] = [
   {
     name: "Modestus Ekenze",
     designation: "Managing Director",
-    imageUrl: "/Modestus Ekenze.jpg",
+    imageUrl: "/modestus-ekenze.jpg",
     bio: "A veteran in the Nigerian oil and gas support sector with over 20 years of experience in HSE and project management.",
     order: 1
   },
   {
     name: "Clinton Ekenze",
     designation: "Executive Director",
-    imageUrl: "/Clinton Ekenze.jpeg",
+    imageUrl: "/clinton-ekenze.jpeg",
     bio: "Strategic leader focused on digital transformation and operational efficiency in the construction and logistics industries.",
     order: 2
   },
   {
     name: "Cynthia Peterson",
     designation: "Field Consultant",
-    imageUrl: "/Cynthia Peterson- Arkinox Field consultant.png",
+    imageUrl: "/cynthia-peterson.png",
     bio: "Expert field consultant specializing in site safety and operational coordination.",
     order: 3
   }

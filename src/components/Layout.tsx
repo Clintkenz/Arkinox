@@ -54,7 +54,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}>
         <nav className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3">
-            <img src={cleanImageUrl("/Arkinox-header.png")} alt="Logo" className="h-20 object-cover" referrerPolicy="no-referrer" />
+            <img src={cleanImageUrl("/arkinox-header.png")} alt="Logo" className="h-20 object-cover" referrerPolicy="no-referrer" />
           </Link>
 
           {/* Desktop Nav */}
@@ -118,7 +118,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {/* Company Info */}
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <img src={cleanImageUrl("/Arkinox-header.png")} alt="Logo" className="h-18 bg-white p-1" referrerPolicy="no-referrer" />
+              <img src={cleanImageUrl("/arkinox-header.png")} alt="Logo" className="h-18 bg-white p-1" referrerPolicy="no-referrer" />
             </div>
             <p className="text-gray-300 leading-relaxed">
               Arkinox Integrated Ltd. is a Nigerian-based, Port Harcourt indigenous company providing HSE management, supply coordination, and project management support.

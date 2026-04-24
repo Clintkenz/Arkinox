@@ -30,7 +30,7 @@ export default function Home() {
       <section className="relative h-[90vh] flex items-center bg-primary overflow-hidden">
         <div className="absolute inset-0 opacity-100">
           <img 
-            src={cleanImageUrl("/Arkinox-machines.png.png")} 
+            src={cleanImageUrl("/arkinox-machines.png")} 
             alt="Hero Background" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -155,7 +155,7 @@ export default function Home() {
             className="relative"
           >
             <img 
-              src={cleanImageUrl("/Arkinox headquarters and branded vehicles.png")} 
+              src={cleanImageUrl("/arkinox-headquarters.png")} 
               alt="Arkinox headqurters" 
               className="rounded-2xl shadow-2xl"
               referrerPolicy="no-referrer"

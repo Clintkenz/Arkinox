@@ -18,7 +18,7 @@ export function Blog() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/Arkinox HSE consultants reviewing data on-site.png")} 
+            src={cleanImageUrl("/arkinox-hse-review.png")} 
             alt="Blog Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -113,7 +113,7 @@ export function BlogPostDetail() {
 
   const author = allUsers.find(u => u.uid === post?.authorId);
   const authorName = author?.displayName || post?.authorName || post?.author || 'ARKINOX Author';
-  const authorImage = author?.photoURL || post?.authorImage || "/Arkinox-header.png";
+  const authorImage = author?.photoURL || post?.authorImage || "/arkinox-header.png";
   const authorBio = author?.bio || post?.authorBio || "HSE and Logistics expert at ARKINOX Integrated Ltd., dedicated to operational excellence and safety standards.";
   const authorLinkedin = author?.linkedin || post?.authorLinkedin;
   const authorInstagram = author?.instagram || post?.authorInstagram;

@@ -26,7 +26,7 @@ export function Services() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src="/Arkinox-machines.png.png" 
+            src={cleanImageUrl("/arkinox-machines.png")} 
             alt="Services Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
