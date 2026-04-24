@@ -5,6 +5,7 @@ import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2,
 import { useFirebase } from '../hooks/useFirebase';
 import ReactMarkdown from 'react-markdown';
 import { cn, cleanImageUrl } from '../lib/utils';
+import machinesImg from '@/assets/images/arkinox-machines.png';
 
 const iconMap: Record<string, React.ReactNode> = {
   ShieldCheck: <ShieldCheck size={32} />,
@@ -26,10 +27,9 @@ export function Services() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/arkinox-machines.png")} 
+            src={machinesImg} 
             alt="Services Hero" 
             className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
           />
         </div>
         <div className="max-w-7xl mx-auto px-4 relative z-10">

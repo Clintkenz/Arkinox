@@ -5,6 +5,7 @@ import { Calendar, User, Tag, ArrowRight, ChevronRight, Clock, Share2, Linkedin,
 import { useFirebase } from '../hooks/useFirebase';
 import ReactMarkdown from 'react-markdown';
 import { cn, cleanImageUrl } from '../lib/utils';
+import hseReviewImg from '@/assets/images/arkinox-hse-review.png';
 
 export function Blog() {
   const { blogPosts, settings, allUsers } = useFirebase();
@@ -18,10 +19,9 @@ export function Blog() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/arkinox-hse-review.png")} 
+            src={hseReviewImg} 
             alt="Blog Hero" 
             className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
           />
         </div>
         <div className="max-w-7xl mx-auto px-4 relative z-10">

@@ -3,6 +3,8 @@ import { motion } from 'motion/react';
 import { ShieldCheck, Users, Target, Award, CheckCircle2, Plus, Camera } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
 import { cn, cleanImageUrl } from '../lib/utils';
+import headquartersImg from '@/assets/images/arkinox-headquarters.png';
+import supplyCoordImg from '@/assets/images/supply-coordination-1.png';
 
 export default function About() {
   const { teamMembers, settings } = useFirebase();
@@ -23,7 +25,7 @@ export default function About() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/arkinox-headquarters.png")} 
+            src={headquartersImg} 
             alt="About Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -77,8 +79,8 @@ export default function About() {
             viewport={{ once: true }}
             className="grid grid-cols-2 gap-1.8"
           >
-            <img src={cleanImageUrl("/arkinox-headquarters.png")} alt="Team" className="rounded-2xl shadow-lg mt-12" referrerPolicy="no-referrer" />
-            <img src={cleanImageUrl("/supply-coordination-1.png")} alt="Team" className="rounded-2xl shadow-lg" referrerPolicy="no-referrer" />
+            <img src={headquartersImg} alt="Team" className="rounded-2xl shadow-lg mt-12" />
+            <img src={supplyCoordImg} alt="Team" className="rounded-2xl shadow-lg" />
           </motion.div>
         </div>
       </section>

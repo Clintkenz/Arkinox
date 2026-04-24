@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2, Users, Briefcase, Globe, Anchor, LogIn, ChevronRight } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
 import { cn, cleanImageUrl } from '../lib/utils';
+import heroBg from '@/assets/images/arkinox-machines.png';
+import headquartersImg from '@/assets/images/arkinox-headquarters.png';
 
 const iconMap: Record<string, React.ReactNode> = {
   ShieldCheck: <ShieldCheck size={40} />,
@@ -30,10 +32,9 @@ export default function Home() {
       <section className="relative h-[90vh] flex items-center bg-primary overflow-hidden">
         <div className="absolute inset-0 opacity-100">
           <img 
-            src={cleanImageUrl("/arkinox-machines.png")} 
+            src={heroBg} 
             alt="Hero Background" 
             className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-transparent" />
         </div>
@@ -155,10 +156,9 @@ export default function Home() {
             className="relative"
           >
             <img 
-              src={cleanImageUrl("/arkinox-headquarters.png")} 
+              src={headquartersImg} 
               alt="Arkinox headqurters" 
               className="rounded-2xl shadow-2xl"
-              referrerPolicy="no-referrer"
             />
             <div className="absolute -bottom-3 -left-3 bg-secondary p-1 rounded-1xl shadow-xl hidden md:block">
               <p className="text-white font-bold text-2xl">5+</p>
