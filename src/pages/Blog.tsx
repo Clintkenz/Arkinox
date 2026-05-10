@@ -18,7 +18,7 @@ export function Blog() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/arkinox-hse-review.png")} 
+            src={cleanImageUrl("/arkinox-machines.png")} 
             alt="Blog Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"

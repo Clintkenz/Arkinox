@@ -20,10 +20,10 @@ export default function About() {
       <section className="bg-primary py-24 text-white relative overflow-hidden">
         <div 
           className="absolute inset-0" 
-          style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
+          style={{ opacity: (settings.heroOpacity ?? 30) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/arkinox-headquarters.png")} 
+            src={cleanImageUrl("/arkinox-headquarters-and-branded-vehicles.png")} 
             alt="About Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -77,7 +77,7 @@ export default function About() {
             viewport={{ once: true }}
             className="grid grid-cols-2 gap-1.8"
           >
-            <img src={cleanImageUrl("/arkinox-headquarters.png")} alt="Team" className="rounded-2xl shadow-lg mt-12" referrerPolicy="no-referrer" />
+            <img src={cleanImageUrl("/arkinox-headquarters-and-branded-vehicles.png")} alt="Team" className="rounded-2xl shadow-lg mt-12" referrerPolicy="no-referrer" />
             <img src={cleanImageUrl("/supply-coordination-1.png")} alt="Team" className="rounded-2xl shadow-lg" referrerPolicy="no-referrer" />
           </motion.div>
         </div>

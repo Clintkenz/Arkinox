@@ -92,7 +92,7 @@ export default function Admin() {
       const timer = setTimeout(() => {
         setSuccess(null);
         setError(null);
-      }, 3000);
+      }, error ? 6000 : 3000); // Errors stay longer
       return () => clearTimeout(timer);
     }
   }, [success, error]);
@@ -276,9 +276,16 @@ export default function Admin() {
       setSuccess('Item saved successfully!');
       setIsModalOpen(false);
       setEditingItem(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving item:', err);
-      setError('Failed to save item. Please check your permissions.');
+      const errorMessage = err.message || '';
+        if (errorMessage.includes('too large') || errorMessage.includes('1MiB')) {
+        setError('Image is too large. Please use a smaller image file (under 700KB).');
+      } else if (errorMessage.includes('permission-denied')) {
+        setError('Permission denied. You may not have the rights to modify this content.');
+      } else {
+        setError(`Failed to save: ${errorMessage || 'Unknown error'}`);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -288,8 +295,8 @@ export default function Admin() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 800000) { // ~800KB limit to stay safe within Firestore 1MB limit
-      setError('File is too large. Please upload an image smaller than 800KB.');
+    if (file.size > 700000) { // ~700KB limit to stay safe within Firestore 1MB limit after Base64 encoding
+      setError('File is too large. Please upload an image smaller than 700KB.');
       return;
     }
 
@@ -519,19 +526,39 @@ export default function Admin() {
           </div>
         </header>
 
-        {/* Feedback Messages */}
-        <AnimatePresence>
-          {success && (
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="bg-green-100 text-green-700 p-4 rounded-xl mb-6 flex items-center gap-3">
-              <CheckCircle2 size={20} /> {success}
-            </motion.div>
-          )}
-          {error && (
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="bg-red-100 text-red-700 p-4 rounded-xl mb-6 flex items-center gap-3">
-              <AlertCircle size={20} /> {error}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Floating Feedback Notifications */}
+        <div className="fixed top-6 right-6 z-[200] flex flex-col gap-4 max-w-md w-full sm:w-auto pointer-events-none">
+          <AnimatePresence>
+            {success && (
+              <motion.div 
+                initial={{ opacity: 0, x: 20, scale: 0.9 }} 
+                animate={{ opacity: 1, x: 0, scale: 1 }} 
+                exit={{ opacity: 0, x: 20, scale: 0.9 }} 
+                className="bg-green-600 text-white p-4 rounded-2xl shadow-2xl flex items-center gap-3 pointer-events-auto border border-green-500"
+              >
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <CheckCircle2 size={18} />
+                </div>
+                <p className="font-bold text-sm flex-grow">{success}</p>
+                <button onClick={() => setSuccess(null)} className="p-1 hover:bg-white/10 rounded-lg transition-all"><X size={14} /></button>
+              </motion.div>
+            )}
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, x: 20, scale: 0.9 }} 
+                animate={{ opacity: 1, x: 0, scale: 1 }} 
+                exit={{ opacity: 0, x: 20, scale: 0.9 }} 
+                className="bg-red-600 text-white p-4 rounded-2xl shadow-2xl flex items-center gap-3 pointer-events-auto border border-red-500"
+              >
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <AlertCircle size={18} />
+                </div>
+                <p className="font-bold text-sm flex-grow">{error}</p>
+                <button onClick={() => setError(null)} className="p-1 hover:bg-white/10 rounded-lg transition-all"><X size={14} /></button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Tab Content */}
         <div className="space-y-8">
@@ -641,6 +668,7 @@ export default function Admin() {
                           <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
+                            if (file.size > 700000) { setError('File too large (max 700KB)'); return; }
                             const reader = new FileReader();
                             reader.onloadend = () => setNewUserPhotoURL(reader.result as string);
                             reader.readAsDataURL(file);
@@ -747,16 +775,17 @@ export default function Admin() {
                     className="w-24 h-24 rounded-2xl object-cover border-4 border-accent shadow-lg" 
                     referrerPolicy="no-referrer"
                   />
-                  <label className="absolute -bottom-2 -right-2 bg-secondary text-white p-2 rounded-lg cursor-pointer hover:scale-110 transition-transform shadow-md">
-                    <Camera size={16} />
-                    <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const reader = new FileReader();
-                      reader.onloadend = () => setMyProfile({ ...myProfile, photoURL: reader.result as string });
-                      reader.readAsDataURL(file);
-                    }} />
-                  </label>
+                    <label className="absolute -bottom-2 -right-2 bg-secondary text-white p-2 rounded-lg cursor-pointer hover:scale-110 transition-transform shadow-md">
+                      <Camera size={16} />
+                      <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 700000) { setError('File too large (max 700KB)'); return; }
+                        const reader = new FileReader();
+                        reader.onloadend = () => setMyProfile({ ...myProfile, photoURL: reader.result as string });
+                        reader.readAsDataURL(file);
+                      }} />
+                    </label>
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-primary">{myProfile.displayName || 'No Name Set'}</h3>
@@ -1037,13 +1066,36 @@ export default function Admin() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-500 uppercase">Logo URL</label>
-                      <input 
-                        type="text" 
-                        className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
-                        value={settings.logoUrl}
-                        onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, logoUrl: e.target.value })}
-                      />
+                      <label className="text-sm font-bold text-gray-500 uppercase">Logo Selection</label>
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-xl bg-accent border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
+                          {settings.logoUrl ? (
+                            <img src={cleanImageUrl(settings.logoUrl)} className="max-w-full max-h-full object-contain" />
+                          ) : (
+                            <div className="text-gray-300 font-bold text-[10px]">NO LOGO</div>
+                          )}
+                        </div>
+                        <div className="flex-grow space-y-2">
+                          <input 
+                            type="text" 
+                            placeholder="URL or Base64"
+                            className="w-full bg-accent border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-secondary" 
+                            value={settings.logoUrl}
+                            onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, logoUrl: e.target.value })}
+                          />
+                            <label className="bg-white border border-gray-200 px-4 py-1.5 rounded-xl cursor-pointer hover:bg-accent transition-all text-[10px] font-bold text-primary flex items-center gap-2 w-fit">
+                              <Camera size={12} /> Upload Logo
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                if (file.size > 700000) { setError('File too large (max 700KB)'); return; }
+                                const reader = new FileReader();
+                                reader.onloadend = () => setDoc(doc(db, 'settings', 'global'), { ...settings, logoUrl: reader.result as string });
+                                reader.readAsDataURL(file);
+                              }} />
+                            </label>
+                        </div>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-gray-500 uppercase">Global Hero Opacity (0-100)</label>
@@ -1224,7 +1276,7 @@ export default function Admin() {
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-bold text-gray-500 uppercase">Title</label>
-                        <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.title || ''} onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })} />
+                        <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.title || ''} onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value, slug: e.target.value.toLowerCase().replace(/ /g, '-') })} />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-bold text-gray-500 uppercase">Slug</label>
@@ -1241,28 +1293,54 @@ export default function Admin() {
                     </div>
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-500 uppercase">Image URL (Card) or Upload</label>
-                        <div className="flex flex-col gap-2">
-                          <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.imageUrl || ''} onChange={(e) => setEditingItem({ ...editingItem, imageUrl: e.target.value })} placeholder="/my-image.jpg" />
-                          <label className="bg-white border border-gray-200 px-4 py-2 rounded-xl cursor-pointer hover:bg-accent transition-all text-xs font-bold text-primary flex items-center gap-2 w-fit">
-                            <Camera size={14} />
-                            Upload
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'imageUrl')} />
-                          </label>
+                        <label className="text-sm font-bold text-gray-500 uppercase">Card Image Selection</label>
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 rounded-xl bg-accent border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
+                            {editingItem?.imageUrl ? (
+                              <img src={cleanImageUrl(editingItem.imageUrl)} className="w-full h-full object-cover" />
+                            ) : (
+                              <ImageIcon size={24} className="text-gray-300" />
+                            )}
+                          </div>
+                          <div className="flex-grow space-y-2">
+                            <input 
+                              type="text" 
+                              placeholder="URL or Upload"
+                              className="w-full bg-accent border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-secondary" 
+                              value={editingItem?.imageUrl || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, imageUrl: e.target.value })} 
+                            />
+                            <label className="bg-white border border-gray-200 px-4 py-1.5 rounded-xl cursor-pointer hover:bg-accent transition-all text-[10px] font-bold text-primary flex items-center gap-2 w-fit">
+                              <Camera size={12} /> Upload
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'imageUrl')} />
+                            </label>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-400">Use /filename.ext or upload (max 800KB).</p>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-500 uppercase">Hero Image URL (Background) or Upload</label>
-                        <div className="flex flex-col gap-2">
-                          <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.heroImageUrl || ''} onChange={(e) => setEditingItem({ ...editingItem, heroImageUrl: e.target.value })} placeholder="/hero-bg.jpg" />
-                          <label className="bg-white border border-gray-200 px-4 py-2 rounded-xl cursor-pointer hover:bg-accent transition-all text-xs font-bold text-primary flex items-center gap-2 w-fit">
-                            <Camera size={14} />
-                            Upload
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'heroImageUrl')} />
-                          </label>
+                        <label className="text-sm font-bold text-gray-500 uppercase">Hero Background Selection</label>
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 rounded-xl bg-accent border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
+                            {editingItem?.heroImageUrl ? (
+                              <img src={cleanImageUrl(editingItem.heroImageUrl)} className="w-full h-full object-cover" />
+                            ) : (
+                              <ImageIcon size={24} className="text-gray-300" />
+                            )}
+                          </div>
+                          <div className="flex-grow space-y-2">
+                            <input 
+                              type="text" 
+                              placeholder="URL or Upload"
+                              className="w-full bg-accent border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-secondary" 
+                              value={editingItem?.heroImageUrl || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, heroImageUrl: e.target.value })} 
+                            />
+                            <label className="bg-white border border-gray-200 px-4 py-1.5 rounded-xl cursor-pointer hover:bg-accent transition-all text-[10px] font-bold text-primary flex items-center gap-2 w-fit">
+                              <Camera size={12} /> Upload
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'heroImageUrl')} />
+                            </label>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-400">Use /filename.ext or upload (max 800KB).</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
@@ -1506,12 +1584,17 @@ export default function Admin() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-6">
                       <div className="flex items-center gap-4">
-                         <div className="relative">
-                            <img src={editingItem.photoURL || 'https://picsum.photos/seed/user/200/200'} className="w-20 h-20 rounded-2xl object-cover border-2 border-accent" />
-                            <label className="absolute -bottom-1 -right-1 bg-secondary text-white p-1 rounded cursor-pointer"><Camera size={12} />
-                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'photoURL')} />
-                            </label>
-                         </div>
+                             <div className="relative">
+                                <img src={editingItem.photoURL || 'https://picsum.photos/seed/user/200/200'} className="w-20 h-20 rounded-2xl object-cover border-2 border-accent" />
+                                <label className="absolute -bottom-1 -right-1 bg-secondary text-white p-1 rounded cursor-pointer"><Camera size={12} />
+                                  <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    if (file.size > 700000) { setError('File too large (max 700KB)'); return; }
+                                    handleFileUpload(e, 'photoURL');
+                                  }} />
+                                </label>
+                             </div>
                          <div>
                             <p className="font-bold text-primary">{editingItem.email}</p>
                             <p className="text-xs text-gray-400">Editing Profile Information</p>
@@ -1552,36 +1635,55 @@ export default function Admin() {
 
                 {activeTab === 'team' && (
                   <>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-500 uppercase">Name</label>
-                        <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.name || ''} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-500 uppercase">Designation</label>
-                        <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.designation || ''} onChange={(e) => setEditingItem({ ...editingItem, designation: e.target.value })} />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-500 uppercase">Bio</label>
-                      <textarea rows={4} className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.bio || ''} onChange={(e) => setEditingItem({ ...editingItem, bio: e.target.value })} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-500 uppercase">Image URL or Upload</label>
-                        <div className="flex flex-col gap-2">
-                          <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.imageUrl || ''} onChange={(e) => setEditingItem({ ...editingItem, imageUrl: e.target.value })} placeholder="/team-image.jpg" />
-                          <label className="bg-white border border-gray-200 px-4 py-2 rounded-xl cursor-pointer hover:bg-accent transition-all text-xs font-bold text-primary flex items-center gap-2 w-fit">
-                            <Camera size={14} />
-                            Upload
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'imageUrl')} />
-                          </label>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-500 uppercase">Name</label>
+                          <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.name || ''} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} />
                         </div>
-                        <p className="text-xs text-gray-400">Use /filename.ext or upload (max 800KB).</p>
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-500 uppercase">Designation</label>
+                          <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.designation || ''} onChange={(e) => setEditingItem({ ...editingItem, designation: e.target.value })} />
+                        </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-500 uppercase">Order</label>
-                        <input type="number" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.order || 0} onChange={(e) => setEditingItem({ ...editingItem, order: parseInt(e.target.value) })} />
+                        <label className="text-sm font-bold text-gray-500 uppercase">Bio</label>
+                        <textarea rows={4} className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.bio || ''} onChange={(e) => setEditingItem({ ...editingItem, bio: e.target.value })} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-500 uppercase">Profile Photo Selection</label>
+                          <div className="flex items-center gap-4">
+                            <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-accent bg-accent shrink-0">
+                              {editingItem?.imageUrl ? (
+                                <img src={cleanImageUrl(editingItem.imageUrl)} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                  <UserIcon size={24} />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                               <input 
+                                type="text" 
+                                placeholder="Photo URL or Base64"
+                                className="w-full bg-accent border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-secondary" 
+                                value={editingItem?.imageUrl || ''}
+                                onChange={(e) => setEditingItem({ ...editingItem, imageUrl: e.target.value })}
+                              />
+                              <label className="bg-white border border-gray-200 px-4 py-2 rounded-xl cursor-pointer hover:bg-accent transition-all text-xs font-bold text-primary flex items-center gap-2 w-fit">
+                                <Camera size={14} />
+                                Upload Photo
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'imageUrl')} />
+                              </label>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-1">Max file size 700KB.</p>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-500 uppercase">Display Order</label>
+                          <input type="number" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.order || 0} onChange={(e) => setEditingItem({ ...editingItem, order: parseInt(e.target.value) })} />
+                        </div>
                       </div>
                     </div>
                   </>

@@ -47,7 +47,7 @@ export default function Contact() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/arkinox-headquarters.png")} 
+            src={cleanImageUrl("/arkinox-headquarters-and-branded-vehicles-1.png")} 
             alt="Contact Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -86,21 +86,27 @@ export default function Contact() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-accent p-8 rounded-3xl space-y-4 border border-gray-100 hover:shadow-xl transition-all group">
+              <a 
+                href={`tel:${settings.contactPhone}`}
+                className="bg-accent p-8 rounded-3xl space-y-4 border border-gray-100 hover:shadow-xl transition-all group block"
+              >
                 <div className="bg-primary text-white p-4 rounded-xl w-fit group-hover:bg-secondary transition-colors">
                   <Phone size={24} />
                 </div>
                 <h3 className="text-xl font-bold text-primary">Call Us</h3>
                 <p className="text-gray-600 font-medium">{settings.contactPhone}</p>
-              </div>
+              </a>
 
-              <div className="bg-accent p-8 rounded-3xl space-y-4 border border-gray-100 hover:shadow-xl transition-all group">
+              <a 
+                href={`mailto:${settings.contactEmail}`}
+                className="bg-accent p-8 rounded-3xl space-y-4 border border-gray-100 hover:shadow-xl transition-all group block"
+              >
                 <div className="bg-primary text-white p-4 rounded-xl w-fit group-hover:bg-secondary transition-colors">
                   <Mail size={24} />
                 </div>
                 <h3 className="text-xl font-bold text-primary">Email Us</h3>
                 <p className="text-gray-600 font-medium">{settings.contactEmail}</p>
-              </div>
+              </a>
 
               <div className="bg-accent p-8 rounded-3xl space-y-4 border border-gray-100 hover:shadow-xl transition-all group md:col-span-2">
                 <div className="bg-primary text-white p-4 rounded-xl w-fit group-hover:bg-secondary transition-colors">

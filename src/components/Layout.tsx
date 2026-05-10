@@ -174,13 +174,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </a>
                 </div>
               </li>
-              <li className="flex gap-4">
-                <Phone className="text-secondary shrink-0" size={20} />
-                <span className="text-gray-300">{settings.contactPhone}</span>
+              <li>
+                <a href={`tel:${settings.contactPhone}`} className="flex gap-4 group">
+                  <Phone className="text-secondary shrink-0 group-hover:scale-110 transition-transform" size={20} />
+                  <span className="text-gray-300 group-hover:text-secondary transition-colors">{settings.contactPhone}</span>
+                </a>
               </li>
-              <li className="flex gap-4">
-                <Mail className="text-secondary shrink-0" size={20} />
-                <span className="text-gray-300">{settings.contactEmail}</span>
+              <li>
+                <a href={`mailto:${settings.contactEmail}`} className="flex gap-4 group">
+                  <Mail className="text-secondary shrink-0 group-hover:scale-110 transition-transform" size={20} />
+                  <span className="text-gray-300 group-hover:text-secondary transition-colors">{settings.contactEmail}</span>
+                </a>
               </li>
             </ul>
           </div>

@@ -96,16 +96,16 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all group border border-gray-100"
+                className="bg-black p-8 rounded-2xl shadow-sm hover:shadow-2xl hover:shadow-black/20 transition-all group border border-white/5"
               >
-                <div className="text-secondary mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="text-[#FFD700] mb-6 group-hover:scale-110 transition-transform duration-300">
                   {iconMap[service.icon] || <Briefcase size={40} />}
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-primary">{service.title}</h3>
-                <p className="text-grey-600 mb-6 line-clamp-3">
+                <h3 className="text-xl font-bold mb-4 text-white">{service.title}</h3>
+                <p className="text-gray-300 mb-6 line-clamp-3">
                   {service.description}
                 </p>
-                <Link to={`/services/${service.slug}`} className="text-primary font-bold flex items-center gap-2 group-hover:text-secondary transition-colors">
+                <Link to={`/services/${service.slug}`} className="text-[#FFD700] font-bold flex items-center gap-2 hover:gap-3 transition-all">
                   Learn More <ArrowRight size={16} />
                 </Link>
               </motion.div>
@@ -257,10 +257,16 @@ export default function Home() {
                 Contact us today for a consultation on how we can support your construction or oil & gas operations.
               </p>
               <div className="flex flex-wrap justify-center gap-4 pt-4">
-                <Link to="/contact" className="bg-secondary text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-secondary transition-all">
-                  Get a Quote
-                </Link>
-                <a href={`tel:${settings.contactPhone}`} className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-10 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-primary transition-all">
+                <a 
+                  href={`mailto:${settings.contactEmail}`} 
+                  className="bg-secondary text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-secondary transition-all"
+                >
+                  Click to Contact
+                </a>
+                <a 
+                  href={`tel:${settings.contactPhone}`} 
+                  className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-10 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-primary transition-all"
+                >
                   Call Us Now
                 </a>
               </div>
