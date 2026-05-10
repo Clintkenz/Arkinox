@@ -156,7 +156,7 @@ export default function Home() {
           >
             <div className="space-y-4 md:space-y-6">
               <img 
-                src={cleanImageUrl("https://drive.google.com/file/d/1YdnmPiuwXa0k72b0UyrV5AcWLMYd0XoK/view")} 
+                src={cleanImageUrl("/public/Arkinox headquarters and branded vehicles.png")} 
                 alt="Arkinox Headquarters" 
                 className="rounded-2xl shadow-xl w-full aspect-[4/5] object-cover"
                 referrerPolicy="no-referrer"
