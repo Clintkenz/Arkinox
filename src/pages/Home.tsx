@@ -152,18 +152,31 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="relative"
+            className="relative grid grid-cols-2 gap-4 md:gap-6"
           >
-            <img 
-              src={cleanImageUrl("/arkinox-headquarters.png")} 
-              alt="Arkinox headqurters" 
-              className="rounded-2xl shadow-2xl"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute -bottom-3 -left-3 bg-secondary p-1 rounded-1xl shadow-xl hidden md:block">
-              <p className="text-white font-bold text-2xl">5+</p>
-              <p className="text-white/80 font-medium">Years of Experience</p>
+            <div className="space-y-4 md:space-y-6">
+              <img 
+                src={cleanImageUrl("https://drive.google.com/file/d/1YdnmPiuwXa0k72b0UyrV5AcWLMYd0XoK/view?usp=drive_link")} 
+                alt="Arkinox Headquarters" 
+                className="rounded-2xl shadow-xl w-full aspect-[4/5] object-cover"
+                referrerPolicy="no-referrer"
+              />
+              <div className="bg-secondary p-6 md:p-8 rounded-2xl shadow-xl transform group hover:-translate-y-1 transition-transform">
+                <p className="text-white font-bold text-4xl md:text-5xl">5+</p>
+                <p className="text-white/80 font-medium text-lg">Years of Experience</p>
+              </div>
             </div>
+            <div className="pt-12 md:pt-16">
+              <img 
+                src={cleanImageUrl("/arkinox-machines.png")} 
+                alt="Arkinox Operations" 
+                className="rounded-2xl shadow-xl w-full aspect-[4/5] object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+            
+            {/* Decorative element */}
+            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-secondary/5 blur-3xl rounded-full" />
           </motion.div>
         </div>
       </section>
