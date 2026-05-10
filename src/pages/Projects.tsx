@@ -5,7 +5,6 @@ import { Calendar, Tag, ArrowRight, ChevronRight, MapPin, Briefcase } from 'luci
 import { useFirebase } from '../hooks/useFirebase';
 import ReactMarkdown from 'react-markdown';
 import { cn, cleanImageUrl } from '../lib/utils';
-import projectImg from '@/assets/images/arkinox-project.jpg';
 
 export function Projects() {
   const { projects, settings } = useFirebase();
@@ -19,9 +18,10 @@ export function Projects() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={projectImg} 
+            src={cleanImageUrl("/arkinox-project.jpg")} 
             alt="Projects Hero" 
             className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
           />
         </div>
         <div className="max-w-7xl mx-auto px-4 relative z-10">

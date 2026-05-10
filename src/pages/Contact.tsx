@@ -4,7 +4,6 @@ import { Phone, Mail, MapPin, Send, CheckCircle2, Facebook, Instagram, Linkedin 
 import { useFirebase } from '../hooks/useFirebase';
 import { db, collection, setDoc, doc } from '../firebase';
 import { cn, cleanImageUrl } from '../lib/utils';
-import headquartersImg from '@/assets/images/arkinox-headquarters.png';
 
 export default function Contact() {
   const { settings } = useFirebase();
@@ -48,9 +47,10 @@ export default function Contact() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={headquartersImg} 
+            src={cleanImageUrl("/arkinox-headquarters.png")} 
             alt="Contact Hero" 
             className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
           />
         </div>
         <div className="max-w-7xl mx-auto px-4 relative z-10">
