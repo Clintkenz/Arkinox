@@ -41,8 +41,8 @@ At ARKINOX, we believe that safety is not just a requirement—it's a core value
 We don't just provide paperwork; we foster a culture of safety that permeates every level of your organization.
     `,
     icon: "ShieldCheck",
-    imageUrl: "/hse-arkinox.jpg",
-    heroImageUrl: "/arkinox-hse-review.png",
+    imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800",
+    heroImageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1200",
     heroOpacity: 15,
     order: 1,
     isVisible: true
@@ -65,8 +65,8 @@ In the oil & gas and construction sectors, supply chain efficiency is the differ
 **The ARKINOX Advantage:** We operate on a coordination model. Clients pay for actual materials directly or through verified channels, ensuring 100% transparency and zero hidden markups.
     `,
     icon: "Truck",
-    imageUrl: "/services-delivery.jpg",
-    heroImageUrl: "/supply-coordination.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80&w=800",
+    heroImageUrl: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80&w=1200",
     heroOpacity: 15,
     order: 2,
     isVisible: true
@@ -90,8 +90,8 @@ Successful projects require meticulous coordination between contractors, vendors
 We bridge the gap between the boardroom and the site, providing the data you need to make informed decisions.
     `,
     icon: "LayoutDashboard",
-    imageUrl: "/arkinox-project.jpg",
-    heroImageUrl: "/arkinox-headquarters.png",
+    imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=800",
+    heroImageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=1200",
     heroOpacity: 15,
     order: 3,
     isVisible: true
@@ -138,8 +138,8 @@ The Niger Delta presents unique logistical challenges. ARKINOX provides speciali
 Our local expertise and deep understanding of the maritime landscape make us the ideal partner for swamp and offshore support.
     `,
     icon: "Anchor",
-    imageUrl: "/marine-logistics.jpg",
-    heroImageUrl: "/a-marine-logistics.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800",
+    heroImageUrl: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1200",
     heroOpacity: 15,
     order: 5,
     isVisible: true
@@ -150,21 +150,21 @@ export const INITIAL_TEAM: Partial<TeamMember>[] = [
   {
     name: "Modestus Ekenze",
     designation: "Managing Director",
-    imageUrl: "/modestus-ekenze.jpg",
+    imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400",
     bio: "A veteran in the Nigerian oil and gas support sector with over 20 years of experience in HSE and project management.",
     order: 1
   },
   {
     name: "Clinton Ekenze",
     designation: "Executive Director",
-    imageUrl: "/clinton-ekenze.jpeg",
+    imageUrl: "https://images.unsplash.com/photo-1494790108755-2616b612b786?auto=format&fit=crop&q=80&w=400",
     bio: "Strategic leader focused on digital transformation and operational efficiency in the construction and logistics industries.",
     order: 2
   },
   {
     name: "Cynthia Peterson",
     designation: "Field Consultant",
-    imageUrl: "/cynthia-peterson.png",
+    imageUrl: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=400",
     bio: "Expert field consultant specializing in site safety and operational coordination.",
     order: 3
   }
