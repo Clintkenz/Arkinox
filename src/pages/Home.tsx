@@ -78,6 +78,24 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Full-width Video Section (Edge to Edge, Cinematic) */}
+      {(settings.videoUrl || "/video_arkinox.mp4") && (
+        <section className="w-full bg-black overflow-hidden relative">
+          <VideoEmbed 
+            url={settings.videoUrl || "/video_arkinox.mp4"} 
+            title="Company Overview" 
+            rounded="rounded-none"
+            shadow="shadow-none"
+            aspect="aspect-video md:aspect-[2.39/1] max-h-[400px] md:max-h-[500px] w-full"
+            className="w-full h-full border-0"
+            autoPlay={true}
+            loop={true}
+            muted={false}
+            controls={false}
+          />
+        </section>
+      )}
+
       {/* Services Section */}
       <section className="py-24 bg-accent">
         <div className="max-w-7xl mx-auto px-4">
@@ -213,57 +231,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Intro Video Section */}
-      {settings.videoUrl && (
-        <section className="py-24 bg-white overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-              <motion.div 
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="lg:col-span-5 space-y-8"
-              >
-                <div className="space-y-4">
-                  <h2 className="text-4xl font-display font-bold text-primary">Experience Our Excellence</h2>
-                  <div className="w-20 h-1.5 bg-secondary rounded-full" />
-                </div>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  Watch our introductory video to learn more about how ARKINOX Integrated Ltd. is transforming construction and energy sectors through disciplined HSE management and efficient logistics.
-                </p>
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-start gap-4">
-                    <div className="bg-secondary/10 p-3 rounded-xl mt-1">
-                      <Play className="text-secondary" size={20} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-primary">Core Competencies</p>
-                      <p className="text-gray-500 text-sm">Visual tour of our management systems and field operations.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className="bg-secondary/10 p-3 rounded-xl mt-1">
-                      <ShieldCheck className="text-secondary" size={20} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-primary">Safety First Approach</p>
-                      <p className="text-gray-500 text-sm">See our compliance-focused execution in real-world scenarios.</p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-              <motion.div 
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="lg:col-span-7"
-              >
-                <VideoEmbed url={settings.videoUrl} title="Company Overview" />
-              </motion.div>
-            </div>
-          </div>
-        </section>
-      )}
+
 
       {/* Latest Projects */}
       <section className="py-24 bg-accent">

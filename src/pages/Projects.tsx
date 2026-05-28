@@ -157,7 +157,14 @@ export function ProjectDetail() {
                   <Play className="text-secondary" size={24} /> 
                   Project Completion Video
                 </h3>
-                <VideoEmbed url={project.videoUrl} title={project.title} />
+                <VideoEmbed 
+                  url={project.videoUrl} 
+                  title={project.title} 
+                  autoPlay={true}
+                  loop={true}
+                  muted={false}
+                  controls={false}
+                />
               </div>
             )}
           </div>

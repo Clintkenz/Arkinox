@@ -185,7 +185,14 @@ export function ServiceDetail() {
                   <Play className="text-secondary" size={24} /> 
                   Service Video Presentation
                 </h3>
-                <VideoEmbed url={service.videoUrl} title={service.title} />
+                <VideoEmbed 
+                  url={service.videoUrl} 
+                  title={service.title} 
+                  autoPlay={true}
+                  loop={true}
+                  muted={false}
+                  controls={false}
+                />
               </div>
             )}
             
