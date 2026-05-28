@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Calendar, Tag, ArrowRight, ChevronRight, MapPin, Briefcase } from 'lucide-react';
+import { Calendar, Tag, ArrowRight, ChevronRight, MapPin, Briefcase, Play } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
 import ReactMarkdown from 'react-markdown';
 import { cn, cleanImageUrl } from '../lib/utils';
+import VideoEmbed from '../components/VideoEmbed';
 
 export function Projects() {
   const { projects, settings } = useFirebase();
@@ -149,6 +150,16 @@ export function ProjectDetail() {
             <div className="markdown-body">
               <ReactMarkdown>{project.content}</ReactMarkdown>
             </div>
+
+            {project.videoUrl && (
+              <div className="space-y-6 pt-8">
+                <h3 className="text-2xl font-bold text-primary flex items-center gap-2">
+                  <Play className="text-secondary" size={24} /> 
+                  Project Completion Video
+                </h3>
+                <VideoEmbed url={project.videoUrl} title={project.title} />
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}

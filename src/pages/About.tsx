@@ -99,13 +99,13 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white p-10 rounded-2xl shadow-sm hover:shadow-xl transition-all text-center group"
+                className="bg-black p-10 rounded-2xl shadow-sm hover:shadow-2xl hover:shadow-black/20 transition-all text-center group border border-white/5"
               >
-                <div className="text-secondary mb-6 flex justify-center group-hover:scale-110 transition-transform duration-300">
+                <div className="text-[#FFD700] mb-6 flex justify-center group-hover:scale-110 transition-transform duration-300">
                   {value.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-primary">{value.title}</h3>
-                <p className="text-gray-600 leading-relaxed">
+                <h3 className="text-xl font-bold mb-4 text-white">{value.title}</h3>
+                <p className="text-gray-300 leading-relaxed">
                   {value.desc}
                 </p>
               </motion.div>

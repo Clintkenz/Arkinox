@@ -1112,6 +1112,17 @@ export default function Admin() {
                       </div>
                       <p className="text-xs text-gray-400 italic">Adjusts the background image opacity for About, Contact, Blog, and Project list pages.</p>
                     </div>
+                    <div className="space-y-2">
+                       <label className="text-sm font-bold text-gray-500 uppercase">Home Page Video URL (YouTube/Vimeo/Direct)</label>
+                       <input 
+                         type="text" 
+                         className="w-full bg-accent border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-secondary" 
+                         placeholder="https://www.youtube.com/watch?v=..."
+                         value={settings.videoUrl || ''} 
+                         onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, videoUrl: e.target.value })} 
+                       />
+                       <p className="text-xs text-gray-400">Optional: Add a video to your home page. Supports YouTube, Vimeo, or direct video file links.</p>
+                    </div>
                   </div>
                 </div>
 
@@ -1381,6 +1392,18 @@ export default function Admin() {
                       </div>
                     </div>
 
+                    <div className="space-y-2">
+                       <label className="text-sm font-bold text-gray-500 uppercase">Video URL (YouTube/Vimeo)</label>
+                       <input 
+                         type="text" 
+                         className="w-full bg-accent border border-gray-200 rounded-xl p-4" 
+                         placeholder="https://www.youtube.com/watch?v=..." 
+                         value={editingItem?.videoUrl || ''} 
+                         onChange={(e) => setEditingItem({ ...editingItem, videoUrl: e.target.value })} 
+                       />
+                       <p className="text-[10px] text-gray-400">Optional: Embed a video in the service details page.</p>
+                    </div>
+
                     <div className="flex items-center gap-4">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" className="w-5 h-5 rounded border-gray-300 text-secondary focus:ring-secondary" checked={editingItem?.isVisible ?? true} onChange={(e) => setEditingItem({ ...editingItem, isVisible: e.target.checked })} />
@@ -1420,6 +1443,18 @@ export default function Admin() {
                       <label className="text-sm font-bold text-gray-500 uppercase">Content (Markdown)</label>
                       <textarea rows={10} className="w-full bg-accent border border-gray-200 rounded-xl p-4 font-mono text-sm" value={editingItem?.content || ''} onChange={(e) => setEditingItem({ ...editingItem, content: e.target.value })} />
                     </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-500 uppercase">Video Embed URL (YouTube/Vimeo)</label>
+                      <input 
+                        type="text" 
+                        className="w-full bg-accent border border-gray-200 rounded-xl p-4" 
+                        placeholder="https://www.youtube.com/watch?v=..." 
+                        value={editingItem?.videoUrl || ''} 
+                        onChange={(e) => setEditingItem({ ...editingItem, videoUrl: e.target.value })} 
+                      />
+                      <p className="text-xs text-gray-400">Paste a YouTube or Vimeo link to embed a video in the details page.</p>
+                    </div>
+
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-gray-500 uppercase">Image URL or Upload</label>
                       <div className="flex flex-col gap-2">

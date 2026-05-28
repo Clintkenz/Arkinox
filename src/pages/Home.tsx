@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2, Users, Briefcase, Globe, Anchor, LogIn, ChevronRight } from 'lucide-react';
+import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2, Users, Briefcase, Globe, Anchor, LogIn, ChevronRight, Play } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
 import { cn, cleanImageUrl } from '../lib/utils';
+import VideoEmbed from '../components/VideoEmbed';
 
 const iconMap: Record<string, React.ReactNode> = {
   ShieldCheck: <ShieldCheck size={40} />,
@@ -127,7 +128,7 @@ export default function Home() {
             <p className="text-lg text-gray-600 leading-relaxed">
               At ARKINOX, we combine local expertise with international standards to deliver exceptional value to our clients.
             </p>
-            <ul className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 "HSE-trained leadership",
                 "Compliance-focused execution",
@@ -135,12 +136,21 @@ export default function Home() {
                 "Cost-effective service delivery",
                 "Strong local vendor network"
               ].map((item, i) => (
-                <li key={i} className="flex items-center gap-4 text-lg text-gray-700">
-                  <CheckCircle2 className="text-secondary shrink-0" size={24} />
-                  {item}
-                </li>
+                <motion.div 
+                  key={i} 
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="bg-black p-6 rounded-2xl flex items-center gap-4 border border-white/5 hover:border-[#FFD700]/30 transition-all group"
+                >
+                  <div className="bg-[#FFD700]/10 p-3 rounded-xl group-hover:bg-[#FFD700]/20 transition-colors">
+                    <CheckCircle2 className="text-[#FFD700]" size={24} />
+                  </div>
+                  <span className="text-white font-medium">{item}</span>
+                </motion.div>
               ))}
-            </ul>
+            </div>
             <div className="pt-4">
               <Link to="/about" className="bg-primary text-white px-8 py-4 rounded-lg font-bold hover:bg-secondary transition-all">
                 About Our Company
@@ -202,6 +212,58 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* Intro Video Section */}
+      {settings.videoUrl && (
+        <section className="py-24 bg-white overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+              <motion.div 
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="lg:col-span-5 space-y-8"
+              >
+                <div className="space-y-4">
+                  <h2 className="text-4xl font-display font-bold text-primary">Experience Our Excellence</h2>
+                  <div className="w-20 h-1.5 bg-secondary rounded-full" />
+                </div>
+                <p className="text-lg text-gray-600 leading-relaxed">
+                  Watch our introductory video to learn more about how ARKINOX Integrated Ltd. is transforming construction and energy sectors through disciplined HSE management and efficient logistics.
+                </p>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-secondary/10 p-3 rounded-xl mt-1">
+                      <Play className="text-secondary" size={20} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-primary">Core Competencies</p>
+                      <p className="text-gray-500 text-sm">Visual tour of our management systems and field operations.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <div className="bg-secondary/10 p-3 rounded-xl mt-1">
+                      <ShieldCheck className="text-secondary" size={20} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-primary">Safety First Approach</p>
+                      <p className="text-gray-500 text-sm">See our compliance-focused execution in real-world scenarios.</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="lg:col-span-7"
+              >
+                <VideoEmbed url={settings.videoUrl} title="Company Overview" />
+              </motion.div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Latest Projects */}
       <section className="py-24 bg-accent">

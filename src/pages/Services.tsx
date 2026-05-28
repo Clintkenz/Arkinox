@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2, Phone, Mail, Anchor } from 'lucide-react';
+import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2, Phone, Mail, Anchor, Play } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
 import ReactMarkdown from 'react-markdown';
 import { cn, cleanImageUrl } from '../lib/utils';
+import VideoEmbed from '../components/VideoEmbed';
 
 const iconMap: Record<string, React.ReactNode> = {
   ShieldCheck: <ShieldCheck size={32} />,
@@ -177,6 +178,16 @@ export function ServiceDetail() {
             <div className="markdown-body">
               <ReactMarkdown>{service.content}</ReactMarkdown>
             </div>
+
+            {service.videoUrl && (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-bold text-primary flex items-center gap-2">
+                  <Play className="text-secondary" size={24} /> 
+                  Service Video Presentation
+                </h3>
+                <VideoEmbed url={service.videoUrl} title={service.title} />
+              </div>
+            )}
             
             <div className="bg-accent p-10 rounded-3xl space-y-8">
               <h3 className="text-2xl font-bold text-primary">Key Features & Benefits</h3>

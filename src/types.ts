@@ -5,6 +5,7 @@ export interface SiteSettings {
   secondaryColor: string;
   fontFamily: string;
   heroOpacity?: number;
+  videoUrl?: string;
   contactEmail: string;
   contactPhone: string;
   address: string;
@@ -27,6 +28,7 @@ export interface Service {
   content: string;
   icon: string;
   imageUrl: string;
+  videoUrl?: string;
   heroImageUrl?: string;
   heroOpacity?: number;
   order: number;
@@ -42,6 +44,7 @@ export interface Project {
   description: string;
   content: string;
   imageUrl: string;
+  videoUrl?: string;
   category: string;
   date: string;
   isVisible: boolean;
