@@ -149,6 +149,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Testimonials
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Messages (Contact Form)
     match /messages/{messageId} {
       allow create: if hasRequiredFields(['name', 'email', 'message']) &&

@@ -1,6 +1,18 @@
+export interface StatItem {
+  id: string; // unique ID to track stats or re-order them
+  label: string;
+  value: string;
+  icon: string;
+}
+
 export interface SiteSettings {
   companyName: string;
   logoUrl: string;
+  logoAspectRatio?: string;
+  logoMaxHeight?: number;
+  logoMaxWidth?: number;
+  logoSmartFraming?: boolean;
+  logoBgColor?: string;
   primaryColor: string;
   secondaryColor: string;
   fontFamily: string;
@@ -18,6 +30,7 @@ export interface SiteSettings {
     metaTitle: string;
     metaDescription: string;
   };
+  stats?: StatItem[];
 }
 
 export interface Service {
@@ -100,3 +113,16 @@ export interface UserRole {
   instagram?: string;
   isBlocked?: boolean;
 }
+
+export interface Testimonial {
+  id: string;
+  authorName: string;
+  role?: string;
+  company?: string;
+  feedback: string;
+  imageUrl?: string;
+  rating?: number; // 1-5
+  order?: number;
+  isVisible?: boolean;
+}
+

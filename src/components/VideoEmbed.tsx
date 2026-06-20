@@ -26,8 +26,10 @@ export default function VideoEmbed({
   muted = false,
   controls = true
 }: VideoEmbedProps) {
-  const [isMuted, setIsMuted] = useState(muted);
+  // If autoPlay is enabled, we MUST start muted to satisfy browser security restrictions
+  const [isMuted, setIsMuted] = useState(autoPlay ? true : muted);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isInViewport, setIsInViewport] = useState(false);
 
@@ -60,66 +62,78 @@ export default function VideoEmbed({
     }
   }, [isMuted]);
 
-  // Handle play/pause based on viewport visibility and auto-unmute on user interaction
+  const isDirectVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
+
+  // Handle play/pause and iframe messaging based on viewport visibility
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !autoPlay) return;
+    if (!autoPlay) return;
 
-    let removeListeners: (() => void) | null = null;
+    if (isDirectVideo) {
+      const video = videoRef.current;
+      if (!video) return;
 
-    if (isInViewport) {
-      video.muted = isMuted;
-      const playPromise = video.play();
+      if (isInViewport) {
+        // Ensure muted property matches state before playing
+        video.muted = isMuted;
+        const playPromise = video.play();
 
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          console.warn("Autoplay with sound was prevented by browser security. Playback started in muted mode:", error);
-          
-          setIsMuted(true);
-          if (videoRef.current) {
-            videoRef.current.muted = true;
-            videoRef.current.play().catch((err) => console.error("Muted fallback autoplay failed:", err));
-          }
-
-          // Define the auto-unmute handler once user interacts with the page
-          const triggerUnmute = () => {
-            if (videoRef.current) {
-              setIsMuted(false);
-              videoRef.current.muted = false;
-            }
-            if (removeListeners) removeListeners();
-          };
-
-          removeListeners = () => {
-            document.removeEventListener('click', triggerUnmute);
-            document.removeEventListener('touchstart', triggerUnmute);
-            document.removeEventListener('keydown', triggerUnmute);
-            document.removeEventListener('scroll', triggerUnmute);
-          };
-
-          document.addEventListener('click', triggerUnmute, { once: true, passive: true });
-          document.addEventListener('touchstart', triggerUnmute, { once: true, passive: true });
-          document.addEventListener('keydown', triggerUnmute, { once: true, passive: true });
-          document.addEventListener('scroll', triggerUnmute, { once: true, passive: true });
-        });
+        if (playPromise !== undefined) {
+          playPromise.catch((error) => {
+            console.warn("Autoplay was prevented by browser restrictions. Falling back to muted autoplay:", error);
+            setIsMuted(true);
+            video.muted = true;
+            video.play().catch((err) => console.error("Muted fallback autoplay failed:", err));
+          });
+        }
+      } else {
+        video.pause();
       }
     } else {
-      video.pause();
-    }
+      // It is an iframe (YouTube or Vimeo)
+      const iframe = iframeRef.current;
+      if (!iframe || !iframe.contentWindow) return;
 
-    return () => {
-      if (removeListeners) {
-        removeListeners();
+      const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+      const isVimeo = url.includes('vimeo.com');
+
+      // We send control instructions via postMessage
+      try {
+        if (isInViewport) {
+          if (isYouTube) {
+            iframe.contentWindow.postMessage(JSON.stringify({
+              event: 'command',
+              func: 'playVideo',
+              args: ''
+            }), '*');
+          } else if (isVimeo) {
+            iframe.contentWindow.postMessage(JSON.stringify({
+              method: 'play'
+            }), '*');
+          }
+        } else {
+          if (isYouTube) {
+            iframe.contentWindow.postMessage(JSON.stringify({
+              event: 'command',
+              func: 'pauseVideo',
+              args: ''
+            }), '*');
+          } else if (isVimeo) {
+            iframe.contentWindow.postMessage(JSON.stringify({
+              method: 'pause'
+            }), '*');
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to send postMessage to iframe:", err);
       }
-    };
-  }, [isInViewport, autoPlay]);
+    }
+  }, [isInViewport, autoPlay, isDirectVideo, url]);
 
   // Function to convert YouTube/Vimeo URLs to embed URLs
   const getEmbedUrl = (videoUrl: string) => {
     try {
-      // Check if it's a direct video file path or URL
-      const isDirectVideo = /\.(mp4|webm|ogg|mov)$/i.test(videoUrl);
-      if (isDirectVideo) return null; // We'll handle this in the return JSX
+      const isDirectVideoUrl = /\.(mp4|webm|ogg|mov)$/i.test(videoUrl);
+      if (isDirectVideoUrl) return null;
 
       const urlObj = new URL(videoUrl);
       
@@ -133,10 +147,19 @@ export default function VideoEmbed({
         }
 
         if (!videoId && urlObj.pathname.includes('/embed/')) {
-          return videoUrl;
+          // If already embed style, make sure we append enablejsapi
+          const baseEmbedUrl = videoUrl.split('?')[0];
+          const queryParams = new URL(videoUrl).searchParams;
+          queryParams.set('enablejsapi', '1');
+          if (autoPlay) {
+            queryParams.set('autoplay', '1');
+            queryParams.set('mute', '1');
+          }
+          return `${baseEmbedUrl}?${queryParams.toString()}`;
         }
 
         const params = new URLSearchParams();
+        params.append('enablejsapi', '1'); // REQUIRED for postMessage controls
         if (autoPlay) {
           params.append('autoplay', '1');
           params.append('mute', '1'); // Autoplay requires mute in browsers
@@ -145,7 +168,7 @@ export default function VideoEmbed({
         }
         if (loop) {
           params.append('loop', '1');
-          params.append('playlist', videoId); // YouTube loop requires playlist param
+          params.append('playlist', videoId);
         }
         if (!controls) {
           params.append('controls', '0');
@@ -164,7 +187,7 @@ export default function VideoEmbed({
         const params = new URLSearchParams();
         if (autoPlay) {
           params.append('autoplay', '1');
-          params.append('muted', '1'); // Autoplay requires mute in browsers
+          params.append('muted', '1');
         } else if (muted) {
           params.append('muted', '1');
         }
@@ -173,18 +196,17 @@ export default function VideoEmbed({
         }
         if (!controls) {
           params.append('controls', '0');
-          params.append('background', '1'); // Removes chromes and controls
+          params.append('background', '1');
         }
         return `https://player.vimeo.com/video/${videoId}?${params.toString()}`;
       }
 
-      return videoUrl; // Fallback to raw URL
+      return videoUrl;
     } catch (e) {
       return videoUrl;
     }
   };
 
-  const isDirectVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
   const embedUrl = isDirectVideo ? url : getEmbedUrl(url);
 
   const toggleMute = (e: React.MouseEvent) => {
@@ -198,7 +220,7 @@ export default function VideoEmbed({
         <>
           <video 
             ref={videoRef}
-            src={embedUrl} 
+            src={embedUrl || undefined} 
             controls={controls} 
             autoPlay={autoPlay}
             loop={loop}
@@ -207,24 +229,31 @@ export default function VideoEmbed({
             disablePictureInPicture={!controls}
             controlsList={!controls ? "nodownload nofullscreen noremoteplayback" : undefined}
             className={`absolute inset-0 w-full h-full object-cover ${!controls ? 'pointer-events-none select-none' : ''}`}
-            poster={url.replace(/\.[^/.]+$/, "") + ".jpg"} // Potential thumbnail fallback
           >
             Your browser does not support the video tag.
           </video>
           
           {/* Custom Speaker overlay for unmuting direct loop/autoplay videos */}
           {!controls && (
-            <button
-              onClick={toggleMute}
-              className="absolute bottom-6 right-6 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md transition-all hover:bg-black/80 hover:scale-105 active:scale-95 cursor-pointer shadow-lg"
-              title={isMuted ? "Unmute sound" : "Mute sound"}
-            >
-              {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-            </button>
+            <div className="absolute bottom-6 right-6 z-20 flex items-center gap-2">
+              {isMuted && (
+                <span className="bg-black/60 text-white text-xs font-bold px-3 py-1.5 rounded-xl backdrop-blur-md shadow-lg pointer-events-none whitespace-nowrap animate-pulse">
+                  Click for Sound
+                </span>
+              )}
+              <button
+                onClick={toggleMute}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md transition-all hover:bg-black/80 hover:scale-105 active:scale-95 cursor-pointer shadow-lg border border-white/10"
+                title={isMuted ? "Unmute sound" : "Mute sound"}
+              >
+                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              </button>
+            </div>
           )}
         </>
       ) : (
         <iframe
+          ref={iframeRef}
           src={embedUrl || ''}
           title={title || "Video player"}
           frameBorder="0"

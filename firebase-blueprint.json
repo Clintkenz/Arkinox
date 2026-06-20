@@ -129,6 +129,22 @@
         "createdAt": { "type": "string" }
       },
       "required": ["name", "email", "message"]
+    },
+    "testimonial": {
+      "title": "Testimonial",
+      "description": "Client feedback or user endorsement",
+      "type": "object",
+      "properties": {
+        "authorName": { "type": "string" },
+        "role": { "type": "string" },
+        "company": { "type": "string" },
+        "feedback": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "rating": { "type": "number" },
+        "order": { "type": "number" },
+        "isVisible": { "type": "boolean" }
+      },
+      "required": ["authorName", "feedback"]
     }
   },
   "firestore": {
@@ -137,6 +153,7 @@
     "projects/{projectId}": { "schema": "project", "description": "Portfolio projects" },
     "blogPosts/{postId}": { "schema": "blogPost", "description": "Blog articles" },
     "teamMembers/{memberId}": { "schema": "teamMember", "description": "Management team" },
-    "messages/{messageId}": { "schema": "message", "description": "Contact form submissions" }
+    "messages/{messageId}": { "schema": "message", "description": "Contact form submissions" },
+    "testimonials/{testimonialId}": { "schema": "testimonial", "description": "Client testimonials" }
   }
 }

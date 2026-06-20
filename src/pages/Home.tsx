@@ -1,10 +1,34 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2, Users, Briefcase, Globe, Anchor, LogIn, ChevronRight, Play } from 'lucide-react';
+import { 
+  ShieldCheck, 
+  Truck, 
+  LayoutDashboard, 
+  HardHat, 
+  ArrowRight, 
+  CheckCircle2, 
+  Users, 
+  Briefcase, 
+  Globe, 
+  Anchor, 
+  LogIn, 
+  ChevronRight, 
+  Play,
+  Award,
+  Activity,
+  TrendingUp,
+  Clock,
+  Heart,
+  Wrench,
+  ThumbsUp
+} from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
 import { cn, cleanImageUrl } from '../lib/utils';
 import VideoEmbed from '../components/VideoEmbed';
+import TestimonialSlider from '../components/TestimonialSlider';
+import { INITIAL_TESTIMONIALS } from '../constants';
+import { Testimonial } from '../types';
 
 const iconMap: Record<string, React.ReactNode> = {
   ShieldCheck: <ShieldCheck size={40} />,
@@ -14,30 +38,52 @@ const iconMap: Record<string, React.ReactNode> = {
   Anchor: <Anchor size={40} />,
 };
 
+const statIconMap: Record<string, React.ReactNode> = {
+  Briefcase: <Briefcase size={40} />,
+  Users: <Users size={40} />,
+  ShieldCheck: <ShieldCheck size={40} />,
+  Globe: <Globe size={40} />,
+  Award: <Award size={40} />,
+  Activity: <Activity size={40} />,
+  TrendingUp: <TrendingUp size={40} />,
+  Clock: <Clock size={40} />,
+  Heart: <Heart size={40} />,
+  Wrench: <Wrench size={40} />,
+  ThumbsUp: <ThumbsUp size={40} />,
+  Truck: <Truck size={40} />,
+  HardHat: <HardHat size={40} />,
+  Anchor: <Anchor size={40} />,
+};
+
 export default function Home() {
-  const { services, projects, blogPosts, teamMembers, settings } = useFirebase();
+  const { services, projects, blogPosts, teamMembers, testimonials, settings } = useFirebase();
   const [showLoginLinks, setShowLoginLinks] = useState(false);
 
-  const stats = [
-    { label: 'Projects Completed', value: '50+', icon: <Briefcase /> },
-    { label: 'Happy Clients', value: '100+', icon: <Users /> },
-    { label: 'Safety Record', value: '100%', icon: <ShieldCheck /> },
-    { label: 'Local Network', value: '200+', icon: <Globe /> },
-  ];
+  const displayStats = settings.stats && settings.stats.length > 0
+    ? settings.stats
+    : [
+        { id: "1", label: 'Projects Completed', value: '50+', icon: 'Briefcase' },
+        { id: "2", label: 'Happy Clients', value: '100+', icon: 'Users' },
+        { id: "3", label: 'Safety Record', value: '100%', icon: 'ShieldCheck' },
+        { id: "4", label: 'Local Network', value: '200+', icon: 'Globe' },
+      ];
 
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
       <section className="relative h-[90vh] flex items-center bg-primary overflow-hidden">
-        <div className="absolute inset-0 opacity-100">
+        <div 
+          className="absolute inset-0"
+          style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
+        >
           <img 
             src={cleanImageUrl("/arkinox-machines.png")} 
             alt="Hero Background" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-transparent" />
         </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-transparent" />
 
         <div className="relative max-w-7xl mx-auto px-4 w-full">
           <motion.div 
@@ -177,33 +223,29 @@ export default function Home() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="relative grid grid-cols-2 gap-4 md:gap-6"
+            className="relative rounded-3xl overflow-hidden shadow-2xl border border-gray-100 group"
           >
-            <div className="space-y-4 md:space-y-6">
+            <div className="relative w-full h-[520px] overflow-hidden">
               <img 
                 src={cleanImageUrl("/arkinox-headquarters-and-branded-vehicles-1.png")} 
-                alt="Arkinox Headquarters" 
-                className="rounded-2xl shadow-xl w-full aspect-[4/5] object-cover"
+                alt="ARKINOX Headquarters & Operations" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 referrerPolicy="no-referrer"
               />
-              <div className="bg-secondary p-6 md:p-8 rounded-2xl shadow-xl transform group hover:-translate-y-1 transition-transform">
-                <p className="text-white font-bold text-4xl md:text-5xl">5+</p>
-                <p className="text-white/80 font-medium text-lg">Years of Experience</p>
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
             </div>
-            <div className="pt-12 md:pt-16">
-              <img 
-                src={cleanImageUrl("/arkinox-machines.png")} 
-                alt="Arkinox Operations" 
-                className="rounded-2xl shadow-xl w-full aspect-[4/5] object-cover"
-                referrerPolicy="no-referrer"
-              />
+
+            {/* Premium Overlay Badge */}
+            <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8 bg-primary/95 text-white p-6 md:p-8 rounded-2xl shadow-2xl border border-white/10 backdrop-blur-md transform hover:-translate-y-1 transition-all duration-300">
+              <p className="text-[#FFD700] font-bold text-4xl md:text-5xl mb-1">5+</p>
+              <p className="text-white/90 font-semibold text-base md:text-lg">Years of Excellence</p>
+              <p className="text-gray-300 text-xs mt-1">HSE & Supply Coordination</p>
             </div>
             
-            {/* Decorative element */}
+            {/* Decorative ambient glowing element */}
             <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-secondary/5 blur-3xl rounded-full" />
           </motion.div>
         </div>
@@ -212,9 +254,9 @@ export default function Home() {
       {/* Stats Section */}
       <section className="py-20 bg-primary text-white">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
-          {stats.map((stat, i) => (
+          {displayStats.map((stat, i) => (
             <motion.div
-              key={i}
+              key={stat.id || i}
               initial={{ opacity: 0, scale: 0.5 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -222,7 +264,7 @@ export default function Home() {
               className="space-y-4"
             >
               <div className="text-secondary flex justify-center">
-                {React.cloneElement(stat.icon as React.ReactElement<any>, { size: 40 })}
+                {statIconMap[stat.icon] || <Briefcase size={40} />}
               </div>
               <p className="text-4xl font-bold font-display">{stat.value}</p>
               <p className="text-gray-400 font-medium">{stat.label}</p>
@@ -273,6 +315,31 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Testimonials Section */}
+      {(() => {
+        const displayTestimonials = testimonials && testimonials.length > 0 
+          ? testimonials 
+          : (INITIAL_TESTIMONIALS as Testimonial[]);
+        
+        const visibleTestimonials = displayTestimonials.filter(t => t.isVisible !== false);
+        if (visibleTestimonials.length === 0) return null;
+
+        return (
+          <section className="py-24 bg-accent/30 border-t border-b border-gray-100">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="text-center mb-8 space-y-4">
+                <h2 className="text-4xl font-display font-bold text-primary">Trusted Client Feedback</h2>
+                <div className="w-20 h-1.5 bg-secondary mx-auto rounded-full" />
+                <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+                  Hear from construction contractors, project managers, and logistics partners who rely on our HSE and supply coordination.
+                </p>
+              </div>
+              <TestimonialSlider testimonials={displayTestimonials} />
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Call to Action */}
       <section className="py-24 bg-white">

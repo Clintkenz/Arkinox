@@ -1,8 +1,13 @@
-import { SiteSettings, Service, TeamMember, BlogPost, Project } from './types';
+import { SiteSettings, Service, TeamMember, BlogPost, Project, Testimonial } from './types';
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   companyName: "ARKINOX Integrated Ltd.",
   logoUrl: "https://picsum.photos/seed/arkinox-logo/200/200",
+  logoAspectRatio: "auto",
+  logoMaxHeight: 80,
+  logoMaxWidth: 220,
+  logoSmartFraming: true,
+  logoBgColor: "transparent",
   primaryColor: "#003366", // Dark Blue
   secondaryColor: "#FF8C00", // Dark Orange
   fontFamily: "Inter",
@@ -18,7 +23,13 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   seo: {
     metaTitle: "ARKINOX Integrated Ltd. | Construction, Oil & Gas Support, and Supply Logistics",
     metaDescription: "Providing HSE management, supply coordination, and project management support for oil & gas and construction firms in Port Harcourt, Nigeria."
-  }
+  },
+  stats: [
+    { id: "1", label: "Projects Completed", value: "50+", icon: "Briefcase" },
+    { id: "2", label: "Happy Clients", value: "100+", icon: "Users" },
+    { id: "3", label: "Safety Record", value: "100%", icon: "ShieldCheck" },
+    { id: "4", label: "Local Network", value: "200+", icon: "Globe" }
+  ]
 };
 
 export const INITIAL_SERVICES: Partial<Service>[] = [
@@ -265,6 +276,39 @@ export const INITIAL_PROJECTS: Partial<Project>[] = [
     imageUrl: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=1200",
     category: "Marine Logistics",
     date: "2024-02-10",
+    isVisible: true
+  }
+];
+
+export const INITIAL_TESTIMONIALS: Partial<Testimonial>[] = [
+  {
+    authorName: "Engr. Davies Alabo",
+    role: "Project Manager",
+    company: "Delta Marine & Energies Ltd",
+    feedback: "ARKINOX Integrated Ltd. has been an invaluable partner for our marine operations in Port Harcourt. Their attention to HSE compliance and flawless supply coordination helped us complete our barge transport project with zero downtime.",
+    imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
+    rating: 5,
+    order: 1,
+    isVisible: true
+  },
+  {
+    authorName: "Chief Mrs. Florence Ibe",
+    role: "Procurement Director",
+    company: "Apex Oilfield Solutions",
+    feedback: "The direct, transparent procurement coordination offered by ARKINOX is exactly what our industry needs. Pay-on-receipt coordination saved us huge margins and avoided the middleman inflation trap. Strongly recommended!",
+    imageUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200",
+    rating: 5,
+    order: 2,
+    isVisible: true
+  },
+  {
+    authorName: "Alhaji Ibrahim Musa",
+    role: "Managing Consultant",
+    company: "Northern Logistics & Infra",
+    feedback: "Their site coordination team represents the highest standards of professionalism. The daily activity reporting and material tracking were detailed, accurate, and completely trustworthy. A top-tier indigenous provider.",
+    imageUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200",
+    rating: 5,
+    order: 3,
     isVisible: true
   }
 ];

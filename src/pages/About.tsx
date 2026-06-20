@@ -77,7 +77,7 @@ export default function About() {
             viewport={{ once: true }}
             className="grid grid-cols-2 gap-1.8"
           >
-            <img src={cleanImageUrl("/arkinox-headquarters-and-branded-vehicles.png")} alt="Team" className="rounded-2xl shadow-lg mt-12" referrerPolicy="no-referrer" />
+            <img src={cleanImageUrl("/Arkinox-sand-delivery-with-truck.jpeg")} alt="Team" className="rounded-2xl shadow-lg mt-12" referrerPolicy="no-referrer" />
             <img src={cleanImageUrl("/supply-coordination-1.png")} alt="Team" className="rounded-2xl shadow-lg" referrerPolicy="no-referrer" />
           </motion.div>
         </div>

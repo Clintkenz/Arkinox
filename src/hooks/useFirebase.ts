@@ -3,8 +3,8 @@ import {
   db, auth, onAuthStateChanged, onSnapshot, collection, doc, query, orderBy, where, 
   User, setDoc, getDoc, OperationType, handleFirestoreError 
 } from '../firebase';
-import { SiteSettings, Service, Project, BlogPost, TeamMember, Message, UserRole } from '../types';
-import { DEFAULT_SITE_SETTINGS, INITIAL_SERVICES, INITIAL_TEAM, INITIAL_BLOG_POSTS, INITIAL_PROJECTS } from '../constants';
+import { SiteSettings, Service, Project, BlogPost, TeamMember, Message, UserRole, Testimonial } from '../types';
+import { DEFAULT_SITE_SETTINGS, INITIAL_SERVICES, INITIAL_TEAM, INITIAL_BLOG_POSTS, INITIAL_PROJECTS, INITIAL_TESTIMONIALS } from '../constants';
 
 export function useFirebase() {
   const [user, setUser] = useState<User | null>(null);
@@ -16,6 +16,7 @@ export function useFirebase() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [allUsers, setAllUsers] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,6 +130,16 @@ export function useFirebase() {
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, 'teamMembers'));
 
+    const unsubTestimonials = onSnapshot(query(collection(db, 'testimonials'), orderBy('order', 'asc')), (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Testimonial[];
+      setTestimonials(data);
+      if (isAdmin && snapshot.empty && !snapshot.metadata.fromCache) {
+        INITIAL_TESTIMONIALS.forEach((t) => {
+          setDoc(doc(collection(db, 'testimonials')), t);
+        });
+      }
+    }, (error) => handleFirestoreError(error, OperationType.GET, 'testimonials'));
+
     const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
       setAllUsers(snapshot.docs.map(doc => doc.data() as UserRole));
     }, (error) => handleFirestoreError(error, OperationType.GET, 'users'));
@@ -148,6 +159,7 @@ export function useFirebase() {
       unsubProjects();
       unsubBlog();
       unsubTeam();
+      unsubTestimonials();
       unsubMessages();
       unsubUsers();
     };
@@ -163,6 +175,7 @@ export function useFirebase() {
     projects,
     blogPosts,
     teamMembers,
+    testimonials,
     messages,
     allUsers,
     loading

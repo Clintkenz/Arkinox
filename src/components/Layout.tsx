@@ -17,6 +17,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const logoMaxHeight = settings.logoMaxHeight ?? 80;
+  const logoMaxWidth = settings.logoMaxWidth ?? 220;
+  const logoAspectRatio = settings.logoAspectRatio ?? 'auto';
+  const logoSmartFraming = settings.logoSmartFraming ?? true;
+  const logoBgColor = settings.logoBgColor ?? 'transparent';
+
+  const headerLogoStyle: React.CSSProperties = {
+    maxHeight: `${isScrolled ? Math.min(60, logoMaxHeight) : logoMaxHeight}px`,
+    maxWidth: `${logoMaxWidth}px`,
+    aspectRatio: logoAspectRatio !== 'auto' ? logoAspectRatio.replace('/', ' / ') : undefined,
+    objectFit: 'contain',
+    backgroundColor: logoBgColor !== 'transparent' ? logoBgColor : undefined,
+  };
+
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
@@ -54,7 +68,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}>
         <nav className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3">
-            <img src={cleanImageUrl("/arkinox-header.png")} alt="Logo" className="h-20 object-cover" referrerPolicy="no-referrer" />
+            <div className={cn(
+              "flex items-center justify-center transition-all duration-300",
+              logoSmartFraming && "bg-white p-2 rounded-xl border border-gray-100 shadow-sm"
+            )}>
+              <img 
+                src={settings.logoUrl ? cleanImageUrl(settings.logoUrl) : cleanImageUrl("/arkinox-header.png")} 
+                alt={settings.companyName || "Logo"} 
+                style={headerLogoStyle}
+                className="w-auto h-auto transition-all" 
+                referrerPolicy="no-referrer" 
+              />
+            </div>
           </Link>
 
           {/* Desktop Nav */}
@@ -118,7 +143,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {/* Company Info */}
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <img src={cleanImageUrl("/arkinox_logo_RC_1.jpeg")} alt="Logo" className="h-20 bg-white p-4" referrerPolicy="no-referrer" />
+              <div 
+                className="bg-white p-4 rounded-2xl flex items-center justify-center overflow-hidden shadow-sm animate-fade-in"
+                style={{
+                  height: `${logoMaxHeight > 100 ? 100 : Math.max(64, logoMaxHeight)}px`,
+                  maxWidth: `${logoMaxWidth > 240 ? 240 : Math.max(120, logoMaxWidth)}px`,
+                }}
+              >
+                <img 
+                  src={settings.logoUrl ? cleanImageUrl(settings.logoUrl) : cleanImageUrl("/arkinox_logo_RC_1.jpeg")} 
+                  alt={settings.companyName || "Logo"} 
+                  style={{
+                    maxHeight: '100%',
+                    maxWidth: '100%',
+                    aspectRatio: logoAspectRatio !== 'auto' ? logoAspectRatio.replace('/', ' / ') : undefined,
+                    objectFit: 'contain',
+                  }}
+                  referrerPolicy="no-referrer" 
+                />
+              </div>
             </div>
             <p className="text-gray-300 leading-relaxed">
               Arkinox Integrated Ltd. is a Nigerian-based, Port Harcourt indigenous company providing HSE management, supply coordination, and project management support.

@@ -31,7 +31,7 @@ import {
   LogOut, Plus, Edit2, Trash2, Save, X, Image as ImageIcon, 
   Eye, EyeOff, ChevronRight, Search, Filter, AlertCircle, CheckCircle2,
   Palette, Type, Globe, Mail, Phone, MapPin, Facebook, Instagram, Linkedin, Camera,
-  User as UserIcon, UserPlus, Sparkles, Wand2, Loader2
+  User as UserIcon, UserPlus, Sparkles, Wand2, Loader2, Quote, TrendingUp
 } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
 import { 
@@ -39,11 +39,11 @@ import {
   Timestamp, handleFirestoreError, OperationType 
 } from '../firebase';
 import { cn, cleanImageUrl } from '../lib/utils';
-import { Service, Project, BlogPost, TeamMember, SiteSettings, Message } from '../types';
+import { Service, Project, BlogPost, TeamMember, SiteSettings, Message, Testimonial } from '../types';
 
 export default function Admin() {
-  const { user, isAdmin, isAuthor, isAuthReady, settings, services, projects, blogPosts, teamMembers, messages, allUsers, loading } = useFirebase();
-  const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'services' | 'projects' | 'blog' | 'team' | 'messages' | 'users' | 'profile'>('overview');
+  const { user, isAdmin, isAuthor, isAuthReady, settings, services, projects, blogPosts, teamMembers, testimonials, messages, allUsers, loading } = useFirebase();
+  const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'services' | 'projects' | 'blog' | 'team' | 'messages' | 'users' | 'profile' | 'testimonials'>('overview');
   const [blogEditorTab, setBlogEditorTab] = useState<'edit' | 'preview'>('edit');
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -458,6 +458,7 @@ export default function Admin() {
     { id: 'projects', label: 'Projects', icon: <Briefcase size={20} />, roles: ['admin'] },
     { id: 'blog', label: 'Blog Posts', icon: <FileText size={20} />, roles: ['admin', 'author'] },
     { id: 'team', label: 'Team Members', icon: <Users size={20} />, roles: ['admin'] },
+    { id: 'testimonials', label: 'Testimonials', icon: <Quote size={20} />, roles: ['admin'] },
     { id: 'messages', label: 'Messages', icon: <MessageSquare size={20} />, roles: ['admin'] },
     { id: 'users', label: 'User Management', icon: <Users size={20} />, roles: ['admin'] },
     { id: 'profile', label: 'My Profile', icon: <UserIcon size={20} />, roles: ['admin', 'author'] },
@@ -469,7 +470,12 @@ export default function Admin() {
       {/* Sidebar */}
       <aside className="w-full md:w-72 bg-primary text-white flex flex-col shrink-0">
         <div className="p-8 border-b border-white/10 flex items-center gap-3">
-          <img src={settings.logoUrl} alt="Logo" className="h-10 w-10 rounded-full bg-white p-1" referrerPolicy="no-referrer" />
+          <img 
+            src={settings.logoUrl ? cleanImageUrl(settings.logoUrl) : cleanImageUrl("/arkinox_logo_RC_1.jpeg")} 
+            alt="Logo" 
+            className="h-10 w-10 rounded-full bg-white object-contain p-1" 
+            referrerPolicy="no-referrer" 
+          />
           <span className="font-display font-bold text-xl">ARKINOX Admin</span>
         </div>
         
@@ -515,7 +521,7 @@ export default function Admin() {
             <p className="text-gray-500">Manage your website content and settings.</p>
           </div>
           <div className="flex gap-4">
-            {['services', 'projects', 'blog', 'team'].includes(activeTab) && (
+            {['services', 'projects', 'blog', 'team', 'testimonials'].includes(activeTab) && (
               <button 
                 onClick={() => { setEditingItem({}); setIsModalOpen(true); }}
                 className="bg-secondary text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:shadow-xl transition-all"
@@ -1025,6 +1031,69 @@ export default function Admin() {
             </div>
           )}
 
+          {activeTab === 'testimonials' && (
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-accent text-primary font-bold uppercase text-xs tracking-wider">
+                  <tr>
+                    <th className="p-6">Client / Author</th>
+                    <th className="p-6">Feedback Excerpt</th>
+                    <th className="p-6">Rating</th>
+                    <th className="p-6 col-span-2">Status</th>
+                    <th className="p-6">Order</th>
+                    <th className="p-6 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {testimonials.map((test) => (
+                    <tr key={test.id} className="hover:bg-accent/50 transition-colors">
+                      <td className="p-6">
+                        <div className="flex items-center gap-4">
+                          <img 
+                            src={test.imageUrl ? cleanImageUrl(test.imageUrl) : 'https://picsum.photos/seed/' + encodeURIComponent(test.authorName) + '/100/100'} 
+                            className="w-12 h-12 rounded-xl object-cover border shrink-0 bg-white" 
+                            referrerPolicy="no-referrer" 
+                          />
+                          <div>
+                            <p className="font-bold text-primary">{test.authorName}</p>
+                            <p className="text-xs text-gray-400">{test.role || 'Client'}{test.company ? ` at ${test.company}` : ''}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-6 text-gray-500 max-w-xs truncate">{test.feedback}</td>
+                      <td className="p-6 text-gray-500">
+                        <div className="flex text-amber-500 font-bold tracking-tight">
+                          {'★'.repeat(test.rating || 5)}
+                          {'☆'.repeat(5 - (test.rating || 5))}
+                        </div>
+                      </td>
+                      <td className="p-6 col-span-2">
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-xs font-bold inline-block",
+                          test.isVisible !== false ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                        )}>
+                          {test.isVisible !== false ? 'Visible' : 'Hidden'}
+                        </span>
+                      </td>
+                      <td className="p-6 text-gray-500">{test.order || 0}</td>
+                      <td className="p-6 text-right space-x-2">
+                        <button onClick={() => { setEditingItem(test); setIsModalOpen(true); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors inline-block"><Edit2 size={18} /></button>
+                        <button onClick={() => handleDelete('testimonials', test.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors inline-block"><Trash2 size={18} /></button>
+                      </td>
+                    </tr>
+                  ))}
+                  {testimonials.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-400">
+                        No testimonials uploaded yet. Click "Add New" to get started!
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           {activeTab === 'messages' && (
             <div className="space-y-6">
               {messages.map((msg) => (
@@ -1097,6 +1166,102 @@ export default function Admin() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Logo Aspect Ratio and Smart Framing Controls */}
+                    <div className="bg-accent/40 p-6 rounded-2xl border border-gray-150 space-y-4">
+                      <h4 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center gap-2">
+                        <Sparkles size={16} className="text-secondary animate-pulse" /> Unified Smart Framing & Logo Aspect Ratio
+                      </h4>
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        Fine-tune the logo's aspect ratio, bounds, and container wrapping to ensure any custom uploaded logo looks balanced and integrates seamlessly into the layouts.
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-500 uppercase">Adaptation Aspect Ratio</label>
+                          <select 
+                            className="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:border-secondary font-medium text-primary cursor-pointer"
+                            value={settings.logoAspectRatio || 'auto'}
+                            onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, logoAspectRatio: e.target.value })}
+                          >
+                            <option value="auto">Auto (Original / Contain)</option>
+                            <option value="1/1">Square / Emblem (1:1)</option>
+                            <option value="4/3">Classic Corporate (4:3)</option>
+                            <option value="16/9">Modern Widescreen (16:9)</option>
+                            <option value="21/9">Cinematic Panoramic (21:9)</option>
+                            <option value="3/1">Horizontal Ribbon (3:1)</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-500 uppercase">Logo Background Style</label>
+                          <select 
+                            className="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:border-secondary font-medium text-primary cursor-pointer"
+                            value={settings.logoBgColor || 'transparent'}
+                            onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, logoBgColor: e.target.value })}
+                          >
+                            <option value="transparent">Transparent (None)</option>
+                            <option value="#ffffff">Pure White Card</option>
+                            <option value="#f8fafc">Cool Slate White</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 pt-2">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-center text-xs">
+                            <label className="font-bold text-gray-500 uppercase">Maximum Logo Height</label>
+                            <span className="font-mono font-bold text-secondary bg-white px-2 py-0.5 rounded border">{settings.logoMaxHeight ?? 80}px</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] text-gray-400 font-mono">30px</span>
+                            <input 
+                              type="range" 
+                              min="30" 
+                              max="160" 
+                              className="flex-1 accent-secondary cursor-pointer h-1.5 bg-gray-200 rounded-lg appearance-none" 
+                              value={settings.logoMaxHeight ?? 80} 
+                              onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, logoMaxHeight: parseInt(e.target.value) })} 
+                            />
+                            <span className="text-[10px] text-gray-400 font-mono">160px</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-center text-xs">
+                            <label className="font-bold text-gray-500 uppercase">Maximum Logo Width</label>
+                            <span className="font-mono font-bold text-secondary bg-white px-2 py-0.5 rounded border">{settings.logoMaxWidth ?? 220}px</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] text-gray-400 font-mono">80px</span>
+                            <input 
+                              type="range" 
+                              min="80" 
+                              max="380" 
+                              className="flex-1 accent-secondary cursor-pointer h-1.5 bg-gray-200 rounded-lg appearance-none" 
+                              value={settings.logoMaxWidth ?? 220} 
+                              onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, logoMaxWidth: parseInt(e.target.value) })} 
+                            />
+                            <span className="text-[10px] text-gray-400 font-mono">380px</span>
+                          </div>
+                        </div>
+
+                        <div className="pt-1">
+                          <label className="flex items-center gap-3 cursor-pointer select-none border border-gray-100 bg-white p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 rounded border-gray-300 text-secondary focus:ring-secondary cursor-pointer"
+                              checked={settings.logoSmartFraming !== false} 
+                              onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, logoSmartFraming: e.target.checked })} 
+                            />
+                            <div>
+                              <span className="text-xs font-bold text-primary uppercase block">Automatic Framing Card Wrap</span>
+                              <span className="text-[10px] text-gray-400 block mt-0.5">Encloses the logo in a padded, shadowed background frame to guarantee layout isolation and legibility.</span>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-gray-500 uppercase">Global Hero Opacity (0-100)</label>
                       <div className="flex items-center gap-4">
@@ -1110,7 +1275,7 @@ export default function Admin() {
                         />
                         <span className="font-mono font-bold text-primary w-12">{settings.heroOpacity ?? 15}%</span>
                       </div>
-                      <p className="text-xs text-gray-400 italic">Adjusts the background image opacity for About, Contact, Blog, and Project list pages.</p>
+                      <p className="text-xs text-gray-400 italic">Adjusts the background image opacity for the Home, About, Contact, Blog, and Project list pages.</p>
                     </div>
                     <div className="space-y-2">
                        <label className="text-sm font-bold text-gray-500 uppercase">Home Page Video URL (YouTube/Vimeo/Direct)</label>
@@ -1233,6 +1398,124 @@ export default function Admin() {
                     </div>
                   </div>
                 </div>
+
+                {/* Homepage Stats Section Configuration */}
+                {(() => {
+                  const statsList = settings?.stats || [
+                    { id: "1", label: "Projects Completed", value: "50+", icon: "Briefcase" },
+                    { id: "2", label: "Happy Clients", value: "100+", icon: "Users" },
+                    { id: "3", label: "Safety Record", value: "100%", icon: "ShieldCheck" },
+                    { id: "4", label: "Local Network", value: "200+", icon: "Globe" }
+                  ];
+
+                  const handleUpdateStat = (index: number, key: 'label' | 'value' | 'icon', val: string) => {
+                    const currentStats = [...statsList];
+                    currentStats[index] = {
+                      ...currentStats[index],
+                      [key]: val
+                    };
+                    setDoc(doc(db, 'settings', 'global'), {
+                      ...settings,
+                      stats: currentStats
+                    });
+                  };
+
+                  return (
+                    <div className="space-y-6 lg:col-span-2 bg-slate-50 border border-slate-200 p-8 rounded-3xl mt-6">
+                      <div className="flex flex-wrap justify-between items-center gap-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-primary flex items-center gap-2">
+                            <TrendingUp size={20} className="text-secondary animate-pulse" /> Homepage Stats Section
+                          </h3>
+                          <p className="text-xs text-gray-500 mt-1">Configure active business metrics displayed in the success metrics section of your home page.</p>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            const currentStats = [...statsList];
+                            currentStats.push({
+                              id: Date.now().toString(),
+                              label: "New Statistic Metric",
+                              value: "0+",
+                              icon: "TrendingUp"
+                            });
+                            setDoc(doc(db, 'settings', 'global'), { ...settings, stats: currentStats });
+                          }}
+                          className="bg-primary text-white text-xs font-bold px-4 py-3 rounded-xl hover:bg-secondary transition-all flex items-center gap-2 shadow-sm"
+                        >
+                          + Add New Stat Card
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                        {statsList.map((stat, idx) => (
+                          <div key={stat.id || idx} className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm space-y-4 relative group">
+                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const currentStats = statsList.filter((_, sIdx) => sIdx !== idx);
+                                  setDoc(doc(db, 'settings', 'global'), { ...settings, stats: currentStats });
+                                }}
+                                className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
+                                title="Delete stat card"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="col-span-2 space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase">Metric Value</label>
+                                <input 
+                                  type="text"
+                                  className="w-full bg-accent border border-gray-200 rounded-xl p-2.5 text-sm font-bold text-primary focus:outline-none focus:border-secondary"
+                                  placeholder="e.g. 50+"
+                                  value={stat.value}
+                                  onChange={(e) => handleUpdateStat(idx, 'value', e.target.value)}
+                                />
+                              </div>
+                              <div className="col-span-1 space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase">Icon</label>
+                                <select 
+                                  className="w-full bg-accent border border-gray-200 rounded-xl p-2.5 text-xs font-semibold text-primary focus:outline-none focus:border-secondary cursor-pointer"
+                                  value={stat.icon}
+                                  onChange={(e) => handleUpdateStat(idx, 'icon', e.target.value)}
+                                >
+                                  <option value="Briefcase">Case</option>
+                                  <option value="Users">Users</option>
+                                  <option value="ShieldCheck">Shield</option>
+                                  <option value="Globe">World</option>
+                                  <option value="Award">Award</option>
+                                  <option value="Activity">Pulse</option>
+                                  <option value="TrendingUp">Trend</option>
+                                  <option value="Clock">Clock</option>
+                                  <option value="Heart">Heart</option>
+                                  <option value="Wrench">Wrench</option>
+                                  <option value="ThumbsUp">Like</option>
+                                  <option value="Truck">Logistics</option>
+                                  <option value="HardHat">Safety</option>
+                                  <option value="Anchor">Port</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase">Stat Description / Label</label>
+                              <input 
+                                type="text"
+                                className="w-full bg-accent border border-gray-200 rounded-xl p-2.5 text-xs font-semibold text-primary focus:outline-none focus:border-secondary"
+                                placeholder="e.g. Projects Completed"
+                                value={stat.label}
+                                onChange={(e) => handleUpdateStat(idx, 'label', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Maintenance */}
                 <div className="space-y-6">
@@ -1718,6 +2001,85 @@ export default function Admin() {
                         <div className="space-y-2">
                           <label className="text-sm font-bold text-gray-500 uppercase">Display Order</label>
                           <input type="number" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.order || 0} onChange={(e) => setEditingItem({ ...editingItem, order: parseInt(e.target.value) })} />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {activeTab === 'testimonials' && (
+                  <>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-500 uppercase">Author Name</label>
+                          <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.authorName || ''} onChange={(e) => setEditingItem({ ...editingItem, authorName: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-500 uppercase">Role / Designation</label>
+                          <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" placeholder="e.g. Project Manager, CEO" value={editingItem?.role || ''} onChange={(e) => setEditingItem({ ...editingItem, role: e.target.value })} />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-500 uppercase">Company Name</label>
+                          <input type="text" className="w-full bg-accent border border-gray-200 rounded-xl p-4" placeholder="e.g. Shell" value={editingItem?.company || ''} onChange={(e) => setEditingItem({ ...editingItem, company: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-500 uppercase">Rating (1-5)</label>
+                          <input type="number" min={1} max={5} className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.rating || 5} onChange={(e) => setEditingItem({ ...editingItem, rating: parseInt(e.target.value) || 5 })} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-500 uppercase">Feedback Content</label>
+                        <textarea rows={4} className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.feedback || ''} onChange={(e) => setEditingItem({ ...editingItem, feedback: e.target.value })} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-500 uppercase">Avatar Photo Selection</label>
+                          <div className="flex items-center gap-4">
+                            <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-accent bg-accent shrink-0">
+                              {editingItem?.imageUrl ? (
+                                <img src={cleanImageUrl(editingItem.imageUrl)} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                  <UserIcon size={24} />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                               <input 
+                                type="text" 
+                                placeholder="Photo URL or Base64"
+                                className="w-full bg-accent border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-secondary" 
+                                value={editingItem?.imageUrl || ''}
+                                onChange={(e) => setEditingItem({ ...editingItem, imageUrl: e.target.value })}
+                              />
+                              <label className="bg-white border border-gray-200 px-4 py-2 rounded-xl cursor-pointer hover:bg-accent transition-all text-xs font-bold text-primary flex items-center gap-2 w-fit">
+                                <Camera size={14} />
+                                Upload Avatar Image
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'imageUrl')} />
+                              </label>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-1">Max file size 700KB.</p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-gray-500 uppercase">Display Order</label>
+                            <input type="number" className="w-full bg-accent border border-gray-200 rounded-xl p-4" value={editingItem?.order || 0} onChange={(e) => setEditingItem({ ...editingItem, order: parseInt(e.target.value) || 0 })} />
+                          </div>
+                          <div className="space-y-2 flex flex-col justify-end pb-3">
+                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                              <input 
+                                type="checkbox" 
+                                className="w-5 h-5 rounded border-gray-300 text-secondary focus:ring-secondary cursor-pointer"
+                                checked={editingItem?.isVisible !== false} 
+                                onChange={(e) => setEditingItem({ ...editingItem, isVisible: e.target.checked })} 
+                              />
+                              <span className="text-sm font-bold text-gray-500 uppercase">Is Visible</span>
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
