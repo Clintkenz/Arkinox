@@ -28,8 +28,30 @@ export default function VideoEmbed({
 }: VideoEmbedProps) {
   const [isMuted, setIsMuted] = useState(muted);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isInViewport, setIsInViewport] = useState(false);
 
   if (!url) return null;
+
+  // Use IntersectionObserver to track when the video is in viewport (scrolled/navigated to)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInViewport(entry.isIntersecting);
+      },
+      {
+        threshold: 0.15, // Trigger when 15% of the video container is visible
+      }
+    );
+
+    observer.observe(container);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   // Sync state with HTML video element directly when state changes
   useEffect(() => {
@@ -38,62 +60,59 @@ export default function VideoEmbed({
     }
   }, [isMuted]);
 
-  // Handle browser autoplay policies gracefully by falling back to muted if blocked,
-  // then auto-unmuting upon first user interaction on the page.
+  // Handle play/pause based on viewport visibility and auto-unmute on user interaction
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !autoPlay) return;
 
-    // Use a clean listener registry
-    let cleanedUp = false;
     let removeListeners: (() => void) | null = null;
 
-    // Attempt to play with requested state
-    video.muted = isMuted;
-    const playPromise = video.play();
+    if (isInViewport) {
+      video.muted = isMuted;
+      const playPromise = video.play();
 
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        if (cleanedUp) return;
-        console.warn("Autoplay with sound was prevented by browser security. Muting to start playback:", error);
-        
-        // Mute so the browser permits visual autoplay immediately
-        setIsMuted(true);
-        if (videoRef.current) {
-          videoRef.current.muted = true;
-          videoRef.current.play().catch((err) => console.error("Muted fallback autoplay failed:", err));
-        }
-
-        // Define the auto-unmute handler once user interacts with the page
-        const triggerUnmute = () => {
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.warn("Autoplay with sound was prevented by browser security. Playback started in muted mode:", error);
+          
+          setIsMuted(true);
           if (videoRef.current) {
-            setIsMuted(false);
-            videoRef.current.muted = false;
+            videoRef.current.muted = true;
+            videoRef.current.play().catch((err) => console.error("Muted fallback autoplay failed:", err));
           }
-          if (removeListeners) removeListeners();
-        };
 
-        removeListeners = () => {
-          document.removeEventListener('click', triggerUnmute);
-          document.removeEventListener('touchstart', triggerUnmute);
-          document.removeEventListener('keydown', triggerUnmute);
-          document.removeEventListener('scroll', triggerUnmute);
-        };
+          // Define the auto-unmute handler once user interacts with the page
+          const triggerUnmute = () => {
+            if (videoRef.current) {
+              setIsMuted(false);
+              videoRef.current.muted = false;
+            }
+            if (removeListeners) removeListeners();
+          };
 
-        document.addEventListener('click', triggerUnmute, { once: true, passive: true });
-        document.addEventListener('touchstart', triggerUnmute, { once: true, passive: true });
-        document.addEventListener('keydown', triggerUnmute, { once: true, passive: true });
-        document.addEventListener('scroll', triggerUnmute, { once: true, passive: true });
-      });
+          removeListeners = () => {
+            document.removeEventListener('click', triggerUnmute);
+            document.removeEventListener('touchstart', triggerUnmute);
+            document.removeEventListener('keydown', triggerUnmute);
+            document.removeEventListener('scroll', triggerUnmute);
+          };
+
+          document.addEventListener('click', triggerUnmute, { once: true, passive: true });
+          document.addEventListener('touchstart', triggerUnmute, { once: true, passive: true });
+          document.addEventListener('keydown', triggerUnmute, { once: true, passive: true });
+          document.addEventListener('scroll', triggerUnmute, { once: true, passive: true });
+        });
+      }
+    } else {
+      video.pause();
     }
 
     return () => {
-      cleanedUp = true;
       if (removeListeners) {
         removeListeners();
       }
     };
-  }, [autoPlay]);
+  }, [isInViewport, autoPlay]);
 
   // Function to convert YouTube/Vimeo URLs to embed URLs
   const getEmbedUrl = (videoUrl: string) => {
@@ -174,7 +193,7 @@ export default function VideoEmbed({
   };
 
   return (
-    <div className={`relative ${aspect} ${rounded} ${shadow} overflow-hidden bg-black ${className}`}>
+    <div ref={containerRef} className={`relative ${aspect} ${rounded} ${shadow} overflow-hidden bg-black ${className}`}>
       {isDirectVideo ? (
         <>
           <video 

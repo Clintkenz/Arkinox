@@ -161,7 +161,7 @@ export function ProjectDetail() {
                   url={project.videoUrl} 
                   title={project.title} 
                   autoPlay={true}
-                  loop={true}
+                  loop={false}
                   muted={false}
                   controls={false}
                 />

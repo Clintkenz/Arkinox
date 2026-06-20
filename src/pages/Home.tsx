@@ -89,7 +89,7 @@ export default function Home() {
             aspect="aspect-video md:aspect-[2.39/1] max-h-[400px] md:max-h-[500px] w-full"
             className="w-full h-full border-0"
             autoPlay={true}
-            loop={true}
+            loop={false}
             muted={false}
             controls={false}
           />

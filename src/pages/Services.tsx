@@ -189,7 +189,7 @@ export function ServiceDetail() {
                   url={service.videoUrl} 
                   title={service.title} 
                   autoPlay={true}
-                  loop={true}
+                  loop={false}
                   muted={false}
                   controls={false}
                 />
