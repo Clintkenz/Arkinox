@@ -11,6 +11,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   primaryColor: "#003366", // Dark Blue
   secondaryColor: "#FF8C00", // Dark Orange
   fontFamily: "Inter",
+  heroImageUrl: "/arkinox-machines.png",
   heroOpacity: 15,
   contactEmail: "arkinoxintegrated@gmail.com",
   contactPhone: "07045777065",

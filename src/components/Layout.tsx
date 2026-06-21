@@ -12,6 +12,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   useEffect(() => {
+    if (settings.primaryColor) {
+      document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
+    }
+    if (settings.secondaryColor) {
+      document.documentElement.style.setProperty('--secondary-color', settings.secondaryColor);
+    }
+  }, [settings.primaryColor, settings.secondaryColor]);
+
+  useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);

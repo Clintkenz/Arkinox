@@ -74,10 +74,10 @@ export default function Home() {
       <section className="relative h-[90vh] flex items-center bg-primary overflow-hidden">
         <div 
           className="absolute inset-0"
-          style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
+          style={{ opacity: (settings.heroOpacity ?? 100) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/arkinox-machines.png")} 
+            src={cleanImageUrl(settings.heroImageUrl || "/arkinox-machines.png")} 
             alt="Hero Background" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"

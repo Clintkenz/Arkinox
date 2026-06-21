@@ -47,7 +47,7 @@ export default function Contact() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/arkinox-headquarters-and-branded-vehicles-1.png")} 
+            src={cleanImageUrl(settings.heroImageUrl || "/arkinox-headquarters-and-branded-vehicles-1.png")} 
             alt="Contact Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"

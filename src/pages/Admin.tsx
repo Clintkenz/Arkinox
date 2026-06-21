@@ -41,6 +41,52 @@ import {
 import { cn, cleanImageUrl } from '../lib/utils';
 import { Service, Project, BlogPost, TeamMember, SiteSettings, Message, Testimonial } from '../types';
 
+// Helper to convert HSL to Hex
+function hslToHex(h: number, s: number, l: number): string {
+  l /= 100;
+  const a = (s * Math.min(l, 1 - l)) / 100;
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+// Helper to convert Hex to HSL
+function hexToHsl(hex: string): { h: number; s: number; l: number } {
+  hex = hex.replace(/^#/, '');
+  if (hex.length === 3) {
+    hex = hex.split('').map(char => char + char).join('');
+  }
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100)
+  };
+}
+
 export default function Admin() {
   const { user, isAdmin, isAuthor, isAuthReady, settings, services, projects, blogPosts, teamMembers, testimonials, messages, allUsers, loading } = useFirebase();
   const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'services' | 'projects' | 'blog' | 'team' | 'messages' | 'users' | 'profile' | 'testimonials'>('overview');
@@ -51,6 +97,32 @@ export default function Admin() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Brand Color Gradient Ruler State
+  const [hue, setHue] = useState(210);
+  const [harmonyOffset, setHarmonyOffset] = useState(30);
+  const [saturation, setSaturation] = useState(100);
+  const [lightness, setLightness] = useState(20);
+  const prevPrimaryColorRef = React.useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (settings?.primaryColor && settings.primaryColor !== prevPrimaryColorRef.current) {
+      prevPrimaryColorRef.current = settings.primaryColor;
+      try {
+        const primaryHsl = hexToHsl(settings.primaryColor);
+        setHue(primaryHsl.h);
+        setSaturation(primaryHsl.s);
+        setLightness(primaryHsl.l);
+        if (settings.secondaryColor) {
+          const secondaryHsl = hexToHsl(settings.secondaryColor);
+          const diff = (secondaryHsl.h - primaryHsl.h + 360) % 360;
+          setHarmonyOffset(diff);
+        }
+      } catch (e) {
+        console.error("Error parsing brand HSL:", e);
+      }
+    }
+  }, [settings?.primaryColor, settings?.secondaryColor]);
 
   // Custom Confirm Dialog State
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -1308,6 +1380,52 @@ export default function Admin() {
                       </div>
                     </div>
                     <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                        <ImageIcon size={14} className="text-secondary" /> Global Hero Image
+                      </label>
+                      <div className="flex items-start gap-4 bg-accent/40 p-4 rounded-xl border border-dashed border-gray-200">
+                        <div className="w-24 h-16 rounded-lg bg-white border overflow-hidden shrink-0 flex items-center justify-center shadow-sm">
+                          {settings.heroImageUrl ? (
+                            <img src={cleanImageUrl(settings.heroImageUrl)} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="text-gray-300 font-bold text-[9px] text-center px-1">DEFAULT ARKINX HERO</div>
+                          )}
+                        </div>
+                        <div className="flex-grow space-y-2">
+                          <input 
+                            type="text" 
+                            placeholder="URL or Base64 Image String"
+                            className="w-full bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-secondary font-mono" 
+                            value={settings.heroImageUrl || ''}
+                            onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, heroImageUrl: e.target.value })}
+                          />
+                          <div className="flex gap-2">
+                            <label className="bg-white border border-gray-200 px-3 py-1 rounded-lg cursor-pointer hover:bg-slate-50 transition-all text-[10px] font-bold text-primary flex items-center gap-1.5 w-fit shadow-xs">
+                              <Camera size={11} /> Upload New Hero Image
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                if (file.size > 700000) { setError('File too large (max 700KB). Please optimize or choose a smaller file.'); return; }
+                                const reader = new FileReader();
+                                reader.onloadend = () => setDoc(doc(db, 'settings', 'global'), { ...settings, heroImageUrl: reader.result as string });
+                                reader.readAsDataURL(file);
+                              }} />
+                            </label>
+                            {settings.heroImageUrl && (
+                              <button 
+                                onClick={() => setDoc(doc(db, 'settings', 'global'), { ...settings, heroImageUrl: '' })}
+                                className="bg-red-50 text-red-600 border border-red-100 px-3 py-1 rounded-lg text-[10px] font-bold hover:bg-red-100 transition-all flex items-center gap-1 shadow-xs"
+                              >
+                                <X size={10} /> Reset to Theme Defaults
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-gray-400">Specify an image URL or upload a custom image (max 700KB) to set as the background background across page hero headers.</p>
+                    </div>
+
+                    <div className="space-y-2">
                       <label className="text-sm font-bold text-gray-500 uppercase">Global Hero Opacity (0-100)</label>
                       <div className="flex items-center gap-4">
                         <input 
@@ -1400,20 +1518,309 @@ export default function Admin() {
 
                 {/* Appearance */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-primary flex items-center gap-2"><Palette size={20} /> Appearance</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-primary flex items-center gap-2">
+                      <Palette size={20} className="text-secondary" /> Appearance & Brand Identity
+                    </h3>
+                    <span className="text-[10px] bg-secondary/10 text-secondary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                      Live Preview Enabled
+                    </span>
+                  </div>
+
+                  {/* Standard Swatches / Text Inputs */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-500 uppercase">Primary Color</label>
+                      <label className="text-sm font-bold text-gray-500 uppercase flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-primary" /> Primary Color Hex
+                      </label>
                       <div className="flex gap-2">
-                        <input type="color" className="h-14 w-14 rounded-xl border-none cursor-pointer" value={settings.primaryColor} onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: e.target.value })} />
-                        <input type="text" className="flex-grow bg-accent border border-gray-200 rounded-xl p-4" value={settings.primaryColor} onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: e.target.value })} />
+                        <input 
+                          type="color" 
+                          className="h-14 w-14 rounded-xl border border-gray-200 cursor-pointer shadow-sm hover:scale-105 transition-all" 
+                          value={settings.primaryColor} 
+                          onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: e.target.value })} 
+                        />
+                        <input 
+                          type="text" 
+                          className="flex-grow bg-accent border border-gray-200 rounded-xl p-4 font-mono select-all focus:outline-none focus:border-secondary" 
+                          value={settings.primaryColor} 
+                          onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: e.target.value })} 
+                        />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-500 uppercase">Secondary Color</label>
+                      <label className="text-sm font-bold text-gray-500 uppercase flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-secondary" /> Secondary Color Hex
+                      </label>
                       <div className="flex gap-2">
-                        <input type="color" className="h-14 w-14 rounded-xl border-none cursor-pointer" value={settings.secondaryColor} onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, secondaryColor: e.target.value })} />
-                        <input type="text" className="flex-grow bg-accent border border-gray-200 rounded-xl p-4" value={settings.secondaryColor} onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, secondaryColor: e.target.value })} />
+                        <input 
+                          type="color" 
+                          className="h-14 w-14 rounded-xl border border-gray-200 cursor-pointer shadow-sm hover:scale-105 transition-all" 
+                          value={settings.secondaryColor} 
+                          onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, secondaryColor: e.target.value })} 
+                        />
+                        <input 
+                          type="text" 
+                          className="flex-grow bg-accent border border-gray-200 rounded-xl p-4 font-mono select-all focus:outline-none focus:border-secondary" 
+                          value={settings.secondaryColor} 
+                          onChange={(e) => setDoc(doc(db, 'settings', 'global'), { ...settings, secondaryColor: e.target.value })} 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Gradient Ruler Panel */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-6">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-white rounded-xl shadow-xs border shrink-0">
+                        <Sparkles size={20} className="text-secondary animate-pulse" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-primary flex items-center gap-1.5">
+                          Interactive Brand Gradient Ruler
+                        </h4>
+                        <p className="text-xs text-gray-400 mt-0.5">Drag the slider rulers below to shift primary core hue and harmony offset. Moves apply in real-time across the app; releases save instantly.</p>
+                      </div>
+                    </div>
+
+                    {/* 1. Primary Hue Ruler */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-xs font-bold text-gray-600">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-xs" style={{ backgroundColor: hslToHex(hue, saturation, lightness) }} />
+                          Primary Hue Angle (0° to 360°)
+                        </span>
+                        <span className="font-mono text-gray-400 bg-white border px-1.5 py-0.5 rounded text-[10px]">{hue}°</span>
+                      </div>
+                      <div className="relative">
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="360" 
+                          className="w-full h-3 rounded-lg appearance-none cursor-ew-resize relative z-10 accent-white"
+                          style={{
+                            background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)'
+                          }}
+                          value={hue}
+                          onChange={(e) => {
+                            const newHue = parseInt(e.target.value);
+                            setHue(newHue);
+                            const pColor = hslToHex(newHue, saturation, lightness);
+                            const sColor = hslToHex((newHue + harmonyOffset) % 360, 95, 50);
+                            document.documentElement.style.setProperty('--primary-color', pColor);
+                            document.documentElement.style.setProperty('--secondary-color', sColor);
+                          }}
+                          onMouseUp={() => {
+                            const pColor = hslToHex(hue, saturation, lightness);
+                            const sColor = hslToHex((hue + harmonyOffset) % 360, 95, 50);
+                            setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: pColor, secondaryColor: sColor });
+                          }}
+                          onTouchEnd={() => {
+                            const pColor = hslToHex(hue, saturation, lightness);
+                            const sColor = hslToHex((hue + harmonyOffset) % 360, 95, 50);
+                            setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: pColor, secondaryColor: sColor });
+                          }}
+                        />
+                        {/* Ruler Ticks */}
+                        <div className="flex justify-between px-1.5 h-1 items-end mt-1.5 select-none">
+                          {Array.from({ length: 19 }).map((_, i) => (
+                            <div 
+                              key={i} 
+                              className={cn(
+                                "w-[1.2px] transition-all duration-300",
+                                i % 3 === 0 ? "h-2 bg-gray-400" : "h-1 bg-gray-300",
+                                Math.abs(hue - (i * 20)) <= 10 && "bg-secondary h-2.5"
+                              )} 
+                            />
+                          ))}
+                        </div>
+                        <div className="flex justify-between px-1 text-[8px] text-gray-400 font-mono select-none mt-1">
+                          <span>0° (Red)</span>
+                          <span>60° (Yellow)</span>
+                          <span>120° (Green)</span>
+                          <span>180° (Cyan)</span>
+                          <span>240° (Blue)</span>
+                          <span>300° (Magenta)</span>
+                          <span>360° (Red)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 2. Harmony Range Ruler */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-xs font-bold text-gray-600">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-xs" style={{ backgroundColor: hslToHex((hue + harmonyOffset) % 360, 95, 50) }} />
+                          Harmony Accent Offset (Distance on Color Wheel)
+                        </span>
+                        <span className="font-mono text-gray-400 bg-white border px-1.5 py-0.5 rounded text-[10px]">{harmonyOffset}°</span>
+                      </div>
+                      <div className="relative">
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="360" 
+                          className="w-full h-3 rounded-lg appearance-none cursor-ew-resize relative z-10 accent-white"
+                          style={{
+                            background: `linear-gradient(to right, 
+                              ${hslToHex(hue, 85, 50)}, 
+                              ${hslToHex((hue + 90) % 360, 85, 50)}, 
+                              ${hslToHex((hue + 180) % 360, 85, 50)}, 
+                              ${hslToHex((hue + 270) % 360, 85, 50)}, 
+                              ${hslToHex(hue, 85, 50)}
+                            )`
+                          }}
+                          value={harmonyOffset}
+                          onChange={(e) => {
+                            const newOffset = parseInt(e.target.value);
+                            setHarmonyOffset(newOffset);
+                            const pColor = hslToHex(hue, saturation, lightness);
+                            const sColor = hslToHex((hue + newOffset) % 360, 95, 50);
+                            document.documentElement.style.setProperty('--primary-color', pColor);
+                            document.documentElement.style.setProperty('--secondary-color', sColor);
+                          }}
+                          onMouseUp={() => {
+                            const pColor = hslToHex(hue, saturation, lightness);
+                            const sColor = hslToHex((hue + harmonyOffset) % 360, 95, 50);
+                            setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: pColor, secondaryColor: sColor });
+                          }}
+                          onTouchEnd={() => {
+                            const pColor = hslToHex(hue, saturation, lightness);
+                            const sColor = hslToHex((hue + harmonyOffset) % 360, 95, 50);
+                            setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: pColor, secondaryColor: sColor });
+                          }}
+                        />
+                        {/* Harmony Ticks */}
+                        <div className="flex justify-between px-1.5 h-1 items-end mt-1.5 select-none">
+                          {Array.from({ length: 13 }).map((_, i) => (
+                            <div 
+                              key={i} 
+                              className={cn(
+                                "w-[1.2px] transition-all duration-300",
+                                i % 3 === 0 ? "h-2 bg-gray-400" : "h-1 bg-gray-300",
+                                Math.abs(harmonyOffset - (i * 30)) <= 15 && "bg-secondary h-2.5"
+                              )} 
+                            />
+                          ))}
+                        </div>
+                        <div className="flex justify-between px-1 text-[8px] text-gray-400 font-mono select-none mt-1">
+                          <span>0° (Monochromatic)</span>
+                          <span>30° (Analogous)</span>
+                          <span>120° (Split-Accent)</span>
+                          <span>180° (High Complementary)</span>
+                          <span>240° (Split-Complementary)</span>
+                          <span>360° (Monochromatic)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3. Tone Shifting Ruler (Lightness / Saturation adjustment) */}
+                    <div className="grid grid-cols-2 gap-4 pt-1">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase flex justify-between">
+                          <span>Primary Lightness</span>
+                          <span className="font-mono text-gray-400">{lightness}%</span>
+                        </label>
+                        <input 
+                          type="range" 
+                          min="10" 
+                          max="80" 
+                          className="w-full accent-secondary h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                          value={lightness}
+                          onChange={(e) => {
+                            const newLight = parseInt(e.target.value);
+                            setLightness(newLight);
+                            const pColor = hslToHex(hue, saturation, newLight);
+                            const sColor = hslToHex((hue + harmonyOffset) % 360, 95, 50);
+                            document.documentElement.style.setProperty('--primary-color', pColor);
+                            document.documentElement.style.setProperty('--secondary-color', sColor);
+                          }}
+                          onMouseUp={() => {
+                            const pColor = hslToHex(hue, saturation, lightness);
+                            const sColor = hslToHex((hue + harmonyOffset) % 360, 95, 50);
+                            setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: pColor, secondaryColor: sColor });
+                          }}
+                          onTouchEnd={() => {
+                            const pColor = hslToHex(hue, saturation, lightness);
+                            const sColor = hslToHex((hue + harmonyOffset) % 360, 95, 50);
+                            setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: pColor, secondaryColor: sColor });
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase flex justify-between">
+                          <span>Primary Saturation</span>
+                          <span className="font-mono text-gray-400">{saturation}%</span>
+                        </label>
+                        <input 
+                          type="range" 
+                          min="20" 
+                          max="100" 
+                          className="w-full accent-secondary h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                          value={saturation}
+                          onChange={(e) => {
+                            const newSat = parseInt(e.target.value);
+                            setSaturation(newSat);
+                            const pColor = hslToHex(hue, newSat, lightness);
+                            const sColor = hslToHex((hue + harmonyOffset) % 360, 95, 50);
+                            document.documentElement.style.setProperty('--primary-color', pColor);
+                            document.documentElement.style.setProperty('--secondary-color', sColor);
+                          }}
+                          onMouseUp={() => {
+                            const pColor = hslToHex(hue, saturation, lightness);
+                            const sColor = hslToHex((hue + harmonyOffset) % 360, 95, 50);
+                            setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: pColor, secondaryColor: sColor });
+                          }}
+                          onTouchEnd={() => {
+                            const pColor = hslToHex(hue, saturation, lightness);
+                            const sColor = hslToHex((hue + harmonyOffset) % 360, 95, 50);
+                            setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: pColor, secondaryColor: sColor });
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Pre-designed Brand Presets */}
+                    <div className="space-y-2 pt-3 border-t border-slate-200">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Aesthetic Brand Presets</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {[
+                          { name: 'Arkinox Navy & Sunset', primary: '#003366', secondary: '#FF8C00', desc: 'Heavy-machinery classic' },
+                          { name: 'Pure Obsidian & Gold', primary: '#111111', secondary: '#E2B13C', desc: 'Premium-grade luxury' },
+                          { name: 'Slate Steel & Volt', primary: '#1e293b', secondary: '#a3e635', desc: 'Tech-forward energy' },
+                          { name: 'HSE Safety Amber', primary: '#151b26', secondary: '#f59e0b', desc: 'High-visibility contrast' },
+                          { name: 'Modern Charcoal & Ruby', primary: '#18181b', secondary: '#ef4444', desc: 'Industrial logistics vibe' },
+                          { name: 'Forest Sustainable', primary: '#14532d', secondary: '#22c55e', desc: 'Sustainable & ecology' },
+                        ].map((preset) => (
+                          <button
+                            key={preset.name}
+                            type="button"
+                            onClick={() => {
+                              document.documentElement.style.setProperty('--primary-color', preset.primary);
+                              document.documentElement.style.setProperty('--secondary-color', preset.secondary);
+                              setDoc(doc(db, 'settings', 'global'), { ...settings, primaryColor: preset.primary, secondaryColor: preset.secondary });
+                              const p = hexToHsl(preset.primary);
+                              const s = hexToHsl(preset.secondary);
+                              setHue(p.h);
+                              setSaturation(p.s);
+                              setLightness(p.l);
+                              setHarmonyOffset((s.h - p.h + 360) % 360);
+                            }}
+                            className={cn(
+                              "text-left p-2.5 rounded-xl border border-gray-100 bg-white hover:border-secondary hover:shadow-xs transition-all relative overflow-hidden group cursor-pointer",
+                              settings.primaryColor?.toLowerCase() === preset.primary.toLowerCase() && "border-secondary ring-1 ring-secondary"
+                            )}
+                          >
+                            <div className="flex items-center justify-between gap-1.5">
+                              <span className="text-[10px] font-bold text-primary truncate block w-full">{preset.name}</span>
+                              <div className="flex shrink-0 gap-0.5">
+                                <span className="w-1.5 h-3 rounded-l-xs" style={{ backgroundColor: preset.primary }} />
+                                <span className="w-1.5 h-3 rounded-r-xs" style={{ backgroundColor: preset.secondary }} />
+                              </div>
+                            </div>
+                            <span className="text-[8px] text-gray-400 truncate block mt-0.5">{preset.desc}</span>
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>

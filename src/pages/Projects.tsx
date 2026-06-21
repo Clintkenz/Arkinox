@@ -19,7 +19,7 @@ export function Projects() {
           style={{ opacity: (settings.heroOpacity ?? 15) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/arkinox-headquarters-and-branded-vehicles.png")} 
+            src={cleanImageUrl(settings.heroImageUrl || "/arkinox-headquarters-and-branded-vehicles.png")} 
             alt="Projects Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"

@@ -16,6 +16,7 @@ export interface SiteSettings {
   primaryColor: string;
   secondaryColor: string;
   fontFamily: string;
+  heroImageUrl?: string;
   heroOpacity?: number;
   videoUrl?: string;
   contactEmail: string;

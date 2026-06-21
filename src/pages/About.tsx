@@ -23,7 +23,7 @@ export default function About() {
           style={{ opacity: (settings.heroOpacity ?? 30) / 100 }}
         >
           <img 
-            src={cleanImageUrl("/arkinox-headquarters-and-branded-vehicles.png")} 
+            src={cleanImageUrl(settings.heroImageUrl || "/arkinox-headquarters-and-branded-vehicles.png")} 
             alt="About Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
