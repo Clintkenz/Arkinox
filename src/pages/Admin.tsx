@@ -52,6 +52,37 @@ export default function Admin() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Custom Confirm Dialog State
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    isDestructive?: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmText: 'Confirm',
+    isDestructive: false
+  });
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void, confirmText = 'Confirm', isDestructive = false) => {
+    setConfirmDialog({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        onConfirm();
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+      },
+      confirmText,
+      isDestructive
+    });
+  };
+
   // Login Form State
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -339,36 +370,42 @@ export default function Admin() {
   };
 
   const handleResetContent = async () => {
-    if (!window.confirm('This will delete all current services, projects, blog posts, and team members and replace them with default "cutting-edge" content. This cannot be undone. Proceed?')) return;
-    
-    setIsSubmitting(true);
-    try {
-      const { INITIAL_SERVICES, INITIAL_PROJECTS, INITIAL_BLOG_POSTS, INITIAL_TEAM, DEFAULT_SITE_SETTINGS } = await import('../constants');
-      
-      // Delete existing
-      const collections = ['services', 'projects', 'blogPosts', 'teamMembers'];
-      for (const collName of collections) {
-        const snap = await getDocs(collection(db, collName));
-        for (const docItem of snap.docs) {
-          await deleteDoc(doc(db, collName, docItem.id));
+    showConfirm(
+      'Reset All Site Content',
+      'This will delete all current services, projects, blog posts, and team members and replace them with default "cutting-edge" content. This actions is irreversible. Proceed anyway?',
+      async () => {
+        setIsSubmitting(true);
+        try {
+          const { INITIAL_SERVICES, INITIAL_PROJECTS, INITIAL_BLOG_POSTS, INITIAL_TEAM, DEFAULT_SITE_SETTINGS } = await import('../constants');
+          
+          // Delete existing
+          const collections = ['services', 'projects', 'blogPosts', 'teamMembers'];
+          for (const collName of collections) {
+            const snap = await getDocs(collection(db, collName));
+            for (const docItem of snap.docs) {
+              await deleteDoc(doc(db, collName, docItem.id));
+            }
+          }
+
+          // Seed new
+          for (const s of INITIAL_SERVICES) await setDoc(doc(collection(db, 'services')), s);
+          for (const p of INITIAL_PROJECTS) await setDoc(doc(collection(db, 'projects')), p);
+          for (const b of INITIAL_BLOG_POSTS) await setDoc(doc(collection(db, 'blogPosts')), b);
+          for (const t of INITIAL_TEAM) await setDoc(doc(collection(db, 'teamMembers')), t);
+          
+          await setDoc(doc(db, 'settings', 'global'), DEFAULT_SITE_SETTINGS);
+
+          setSuccess('Website content has been reset to cutting-edge defaults!');
+        } catch (err) {
+          console.error('Error resetting content:', err);
+          setError('Failed to reset content.');
+        } finally {
+          setIsSubmitting(false);
         }
-      }
-
-      // Seed new
-      for (const s of INITIAL_SERVICES) await setDoc(doc(collection(db, 'services')), s);
-      for (const p of INITIAL_PROJECTS) await setDoc(doc(collection(db, 'projects')), p);
-      for (const b of INITIAL_BLOG_POSTS) await setDoc(doc(collection(db, 'blogPosts')), b);
-      for (const t of INITIAL_TEAM) await setDoc(doc(collection(db, 'teamMembers')), t);
-      
-      await setDoc(doc(db, 'settings', 'global'), DEFAULT_SITE_SETTINGS);
-
-      setSuccess('Website content has been reset to cutting-edge defaults!');
-    } catch (err) {
-      console.error('Error resetting content:', err);
-      setError('Failed to reset content.');
-    } finally {
-      setIsSubmitting(false);
-    }
+      },
+      'Reset Content',
+      true
+    );
   };
 
   const handleUpdateRole = async (uid: string, newRole: 'admin' | 'author' | 'user') => {
@@ -442,14 +479,22 @@ export default function Admin() {
   };
 
   const handleDelete = async (collectionName: string, id: string) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) return;
-    try {
-      await deleteDoc(doc(collection(db, collectionName), id));
-      setSuccess('Item deleted successfully!');
-    } catch (err) {
-      console.error('Error deleting item:', err);
-      setError('Failed to delete item.');
-    }
+    showConfirm(
+      'Confirm Deletion',
+      `Are you sure you want to permanently delete this ${collectionName === 'blogPosts' ? 'blog post' : collectionName === 'teamMembers' ? 'team member' : collectionName.slice(0, -1)}? This action cannot be undone.`,
+      async () => {
+        try {
+          await deleteDoc(doc(db, collectionName, id));
+          setSuccess('Item deleted successfully!');
+        } catch (err: any) {
+          console.error('Error deleting item:', err);
+          handleFirestoreError(err, OperationType.DELETE, `${collectionName}/${id}`);
+          setError(`Failed to delete item: ${err.message || 'Permission denied or network issue.'}`);
+        }
+      },
+      'Delete',
+      true
+    );
   };
 
   const menuItems = [
@@ -2107,6 +2152,53 @@ export default function Admin() {
                   {isSubmitting ? 'Saving...' : 'Save Changes'} <Save size={20} />
                 </button>
               </footer>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Confirm Dialog Modal */}
+      <AnimatePresence>
+        {confirmDialog.isOpen && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="absolute inset-0 bg-primary/80 backdrop-blur-sm"
+              onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 10 }} 
+              className="bg-white w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden p-6 border border-gray-100"
+            >
+              <h3 className="text-xl font-bold text-primary mb-2">
+                {confirmDialog.title}
+              </h3>
+              <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                {confirmDialog.message}
+              </p>
+              
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+                  className="px-5 py-2.5 rounded-xl font-bold text-sm text-gray-500 hover:bg-slate-100 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmDialog.onConfirm}
+                  className={`px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all shadow-md ${
+                    confirmDialog.isDestructive 
+                      ? 'bg-red-600 hover:bg-red-700 hover:shadow-red-200' 
+                      : 'bg-secondary hover:bg-secondary/90 hover:shadow-secondary/20'
+                  }`}
+                >
+                  {confirmDialog.confirmText || 'Confirm'}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
