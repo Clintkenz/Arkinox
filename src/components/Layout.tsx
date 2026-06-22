@@ -73,7 +73,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Navigation */}
       <header className={cn(
         "sticky top-0 z-50 transition-all duration-300",
-        isScrolled ? "bg-white shadow-md py-1" : "bg-white/90 backdrop-blur-md py-1"
+        isScrolled ? "bg-white shadow-md py-1" : "bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100 py-1"
       )}>
         <nav className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3">

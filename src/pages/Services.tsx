@@ -19,7 +19,7 @@ export function Services() {
   const { services, settings } = useFirebase();
 
   return (
-    <div className="pt-20">
+    <div className="">
       {/* Hero Section */}
       <section className="bg-primary py-24 text-white relative overflow-hidden">
         <div 
