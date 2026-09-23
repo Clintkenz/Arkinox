@@ -32,7 +32,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }} # Using password again
           port: 22
-          source: "dist/*"
+          source: "dist/*,dist/.htaccess"
           target: "public_html"
           strip_components: 1
           overwrite: true
