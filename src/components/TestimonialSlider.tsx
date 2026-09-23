@@ -134,9 +134,9 @@ export default function TestimonialSlider({ testimonials }: TestimonialSliderPro
       {/* Slider Bullet Pagination Indicators below the box */}
       {visibleTestimonials.length > 1 && (
         <div className="flex justify-center gap-2 mt-6">
-          {visibleTestimonials.map((_, i) => (
+          {visibleTestimonials.map((t, i) => (
             <button
-              key={i}
+              key={t.id ? `bullet-${t.id}` : `bullet-${i}`}
               onClick={() => {
                 setDirection(i > currentIndex ? 'right' : 'left');
                 setCurrentIndex(i);

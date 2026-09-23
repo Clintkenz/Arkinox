@@ -33,8 +33,9 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   ]
 };
 
-export const INITIAL_SERVICES: Partial<Service>[] = [
+export const INITIAL_SERVICES: Service[] = [
   {
+    id: "init-service-1",
     title: "HSE Management & Compliance",
     slug: "hse-management",
     description: "Industry-leading Health, Safety, and Environmental management systems tailored for high-risk operations.",
@@ -60,6 +61,7 @@ We don't just provide paperwork; we foster a culture of safety that permeates ev
     isVisible: true
   },
   {
+    id: "init-service-2",
     title: "Supply Coordination & Procurement",
     slug: "supply-coordination",
     description: "Strategic procurement support and vendor coordination that maximizes value and minimizes delays.",
@@ -84,6 +86,7 @@ In the oil & gas and construction sectors, supply chain efficiency is the differ
     isVisible: true
   },
   {
+    id: "init-service-3",
     title: "Project & Site Coordination",
     slug: "project-coordination",
     description: "Precision-driven site management and daily activity reporting to keep your projects on track.",
@@ -109,6 +112,7 @@ We bridge the gap between the boardroom and the site, providing the data you nee
     isVisible: true
   },
   {
+    id: "init-service-4",
     title: "Heavy Duty Machinery Leasing",
     slug: "machinery-leasing",
     description: "Reliable hiring and leasing of trucks and heavy machinery with performance tracking.",
@@ -133,6 +137,7 @@ Whether it's a small-scale construction site or a major oil & gas facility, we p
     isVisible: true
   },
   {
+    id: "init-service-5",
     title: "Marine Logistics & Support",
     slug: "marine-logistics",
     description: "Specialized support for offshore and swamp operations in the Niger Delta region.",
@@ -158,8 +163,9 @@ Our local expertise and deep understanding of the maritime landscape make us the
   }
 ];
 
-export const INITIAL_TEAM: Partial<TeamMember>[] = [
+export const INITIAL_TEAM: TeamMember[] = [
   {
+    id: "init-team-1",
     name: "Modestus Ekenze",
     designation: "Managing Director",
     imageUrl: "/modestus-ekenze.jpg",
@@ -167,6 +173,7 @@ export const INITIAL_TEAM: Partial<TeamMember>[] = [
     order: 1
   },
   {
+    id: "init-team-2",
     name: "Clinton Ekenze",
     designation: "Executive Director",
     imageUrl: "/clinton-ekenze.jpeg",
@@ -174,6 +181,7 @@ export const INITIAL_TEAM: Partial<TeamMember>[] = [
     order: 2
   },
   {
+    id: "init-team-3",
     name: "Cynthia Peterson",
     designation: "Field Consultant",
     imageUrl: "/cynthia-peterson.png",
@@ -182,8 +190,9 @@ export const INITIAL_TEAM: Partial<TeamMember>[] = [
   }
 ];
 
-export const INITIAL_BLOG_POSTS: Partial<BlogPost>[] = [
+export const INITIAL_BLOG_POSTS: BlogPost[] = [
   {
+    id: "init-post-1",
     title: "The Importance of HSE in Modern Construction",
     slug: "importance-of-hse",
     excerpt: "Why HSE compliance is no longer optional but a critical success factor for major contracts in Nigeria.",
@@ -209,6 +218,7 @@ We don't just write manuals; we implement systems. From daily toolbox talks to r
     isVisible: true
   },
   {
+    id: "init-post-2",
     title: "Optimizing Supply Chain for Oil & Gas Projects",
     slug: "optimizing-supply-chain",
     excerpt: "How strategic procurement coordination can save your project thousands in overhead and delays.",
@@ -233,6 +243,7 @@ Efficiency in procurement isn't just about buying cheap; it's about buying smart
     isVisible: true
   },
   {
+    id: "init-post-3",
     title: "The Future of Heavy Machinery in Infrastructure",
     slug: "future-of-heavy-machinery",
     excerpt: "Exploring how telematics and performance tracking are changing the face of machinery leasing.",
@@ -258,8 +269,9 @@ At ARKINOX, we are integrating these technologies into our fleet management to p
   }
 ];
 
-export const INITIAL_PROJECTS: Partial<Project>[] = [
+export const INITIAL_PROJECTS: Project[] = [
   {
+    id: "init-proj-1",
     title: "Port Harcourt Refinery Support",
     slug: "ph-refinery-support",
     description: "Comprehensive HSE and supply coordination for major refinery maintenance.",
@@ -270,6 +282,7 @@ export const INITIAL_PROJECTS: Partial<Project>[] = [
     isVisible: true
   },
   {
+    id: "init-proj-2",
     title: "Bonny Island Logistics Hub",
     slug: "bonny-island-logistics",
     description: "Marine logistics and material tracking for offshore support base.",
@@ -281,8 +294,9 @@ export const INITIAL_PROJECTS: Partial<Project>[] = [
   }
 ];
 
-export const INITIAL_TESTIMONIALS: Partial<Testimonial>[] = [
+export const INITIAL_TESTIMONIALS: Testimonial[] = [
   {
+    id: "init-test-1",
     authorName: "Engr. Davies Alabo",
     role: "Project Manager",
     company: "Delta Marine & Energies Ltd",
@@ -293,6 +307,7 @@ export const INITIAL_TESTIMONIALS: Partial<Testimonial>[] = [
     isVisible: true
   },
   {
+    id: "init-test-2",
     authorName: "Chief Mrs. Florence Ibe",
     role: "Procurement Director",
     company: "Apex Oilfield Solutions",
@@ -303,6 +318,7 @@ export const INITIAL_TESTIMONIALS: Partial<Testimonial>[] = [
     isVisible: true
   },
   {
+    id: "init-test-3",
     authorName: "Alhaji Ibrahim Musa",
     role: "Managing Consultant",
     company: "Northern Logistics & Infra",
