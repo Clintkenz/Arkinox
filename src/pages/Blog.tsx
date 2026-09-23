@@ -5,6 +5,8 @@ import { Calendar, User, Tag, ArrowRight, ChevronRight, Clock, Share2, Linkedin,
 import { useFirebase } from '../hooks/useFirebase';
 import ReactMarkdown from 'react-markdown';
 import { cn, cleanImageUrl } from '../lib/utils';
+import { INITIAL_BLOG_POSTS } from '../constants';
+import { BlogPost } from '../types';
 
 export function Blog() {
   const { blogPosts, settings, allUsers } = useFirebase();
@@ -98,7 +100,7 @@ export function Blog() {
 export function BlogPostDetail() {
   const { slug } = useParams();
   const { blogPosts, settings, allUsers } = useFirebase();
-  const post = blogPosts.find(p => p.slug === slug);
+  const post = blogPosts.find(p => p.slug === slug) || (INITIAL_BLOG_POSTS as BlogPost[]).find(p => p.slug === slug);
 
   useEffect(() => {
     if (post) {

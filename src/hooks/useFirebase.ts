@@ -12,11 +12,11 @@ export function useFirebase() {
   const [isAuthor, setIsAuthor] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS);
-  const [services, setServices] = useState<Service[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [services, setServices] = useState<Service[]>(() => INITIAL_SERVICES as Service[]);
+  const [projects, setProjects] = useState<Project[]>(() => INITIAL_PROJECTS as Project[]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(() => INITIAL_BLOG_POSTS as BlogPost[]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => INITIAL_TEAM as TeamMember[]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(() => INITIAL_TESTIMONIALS as Testimonial[]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [allUsers, setAllUsers] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);

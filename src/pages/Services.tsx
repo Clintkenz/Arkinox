@@ -6,6 +6,8 @@ import { useFirebase } from '../hooks/useFirebase';
 import ReactMarkdown from 'react-markdown';
 import { cn, cleanImageUrl } from '../lib/utils';
 import VideoEmbed from '../components/VideoEmbed';
+import { INITIAL_SERVICES } from '../constants';
+import { Service } from '../types';
 
 const iconMap: Record<string, React.ReactNode> = {
   ShieldCheck: <ShieldCheck size={32} />,
@@ -116,7 +118,7 @@ export function Services() {
 export function ServiceDetail() {
   const { slug } = useParams();
   const { services, settings } = useFirebase();
-  const service = services.find(s => s.slug === slug);
+  const service = services.find(s => s.slug === slug) || (INITIAL_SERVICES as Service[]).find(s => s.slug === slug);
 
   useEffect(() => {
     if (service) {

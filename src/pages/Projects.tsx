@@ -6,6 +6,8 @@ import { useFirebase } from '../hooks/useFirebase';
 import ReactMarkdown from 'react-markdown';
 import { cn, cleanImageUrl } from '../lib/utils';
 import VideoEmbed from '../components/VideoEmbed';
+import { INITIAL_PROJECTS } from '../constants';
+import { Project } from '../types';
 
 export function Projects() {
   const { projects, settings } = useFirebase();
@@ -89,7 +91,7 @@ export function Projects() {
 export function ProjectDetail() {
   const { slug } = useParams();
   const { projects, settings } = useFirebase();
-  const project = projects.find(p => p.slug === slug);
+  const project = projects.find(p => p.slug === slug) || (INITIAL_PROJECTS as Project[]).find(p => p.slug === slug);
 
   if (!project) {
     return (
