@@ -25,8 +25,8 @@ const quillStyles = `
   }
 `;
 
-import { GoogleGenAI } from "@google/genai";
-import { 
+import DOMPurify from 'dompurify';
+import {
   LayoutDashboard, Settings, FileText, Briefcase, Users, MessageSquare, 
   LogOut, Plus, Edit2, Trash2, Save, X, Image as ImageIcon, 
   Eye, EyeOff, ChevronRight, Search, Filter, AlertCircle, CheckCircle2,
@@ -508,40 +508,28 @@ export default function Admin() {
     
     setIsGeneratingImage(true);
     setError(null);
-    
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const prompt = `Create a high-quality blog post banner image for a professional construction and logistics firm. 
-      Title: "${editingItem.title}"
-      ${editingItem.excerpt ? `Context: ${editingItem.excerpt}` : ''}
-      Style: Professional, clean, modern, architectural photography style. Use a professional blue and orange color palette matching the brand identity.`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [{ text: prompt }],
+    try {
+      const idToken = await user.getIdToken();
+      const res = await fetch('/.netlify/functions/generate-blog-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
         },
-        config: {
-          imageConfig: {
-            aspectRatio: "16:9"
-          }
-        }
+        body: JSON.stringify({
+          title: editingItem.title,
+          excerpt: editingItem.excerpt,
+        }),
       });
 
-      let imageUrl = null;
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          imageUrl = `data:image/png;base64,${part.inlineData.data}`;
-          break;
-        }
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Image generation failed.');
       }
 
-      if (imageUrl) {
-        setEditingItem({ ...editingItem, imageUrl });
-        setSuccess('AI Image generated successfully!');
-      } else {
-        throw new Error('No image was generated in the response.');
-      }
+      setEditingItem({ ...editingItem, imageUrl: data.imageUrl });
+      setSuccess('AI Image generated successfully!');
     } catch (err: any) {
       console.error('Error generating AI image:', err);
       setError('Failed to generate AI image. ' + (err.message || ''));
@@ -2289,7 +2277,7 @@ export default function Admin() {
                         <div className="bg-white rounded-xl border border-gray-200 p-8 min-h-[400px] overflow-y-auto prose max-w-none">
                            <div className="markdown-body">
                              {editingItem?.content?.includes('<') && editingItem?.content?.includes('>') ? (
-                               <div dangerouslySetInnerHTML={{ __html: editingItem.content }} />
+                               <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(editingItem.content) }} />
                              ) : (
                                <div className="whitespace-pre-wrap">{editingItem?.content}</div>
                              )}

@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { Calendar, User, Tag, ArrowRight, ChevronRight, Clock, Share2, Linkedin, Twitter, Facebook, Instagram, Music2 } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
 import ReactMarkdown from 'react-markdown';
+import DOMPurify from 'dompurify';
 import { cn, cleanImageUrl } from '../lib/utils';
 import { INITIAL_BLOG_POSTS } from '../constants';
 import { BlogPost } from '../types';
@@ -182,7 +183,7 @@ export function BlogPostDetail() {
             </div>
             <div className="markdown-body">
               {post.content.includes('<') && post.content.includes('>') ? (
-                <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }} />
               ) : (
                 <ReactMarkdown>{post.content}</ReactMarkdown>
               )}

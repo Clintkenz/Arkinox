@@ -167,7 +167,12 @@ service cloud.firestore {
 
     // Users (Roles & Profiles)
     match /users/{userId} {
-      allow read: if true;
+      // Individual profile lookups: the owner or an admin only (not public -
+      // this collection holds email addresses and role/blocked status).
+      allow get: if isAuthenticated() && (isAdmin() || request.auth.uid == userId);
+      // Listing the full collection (e.g. the admin User Management tab)
+      // is restricted to admins.
+      allow list: if isAdmin();
       // Only Admins can create/delete users or change roles/blocked status
       allow create, delete: if isAdmin();
       allow update: if isAdmin() || (
