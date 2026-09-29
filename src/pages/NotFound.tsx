@@ -2,8 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Home, ArrowLeft, Compass } from 'lucide-react';
+import { useDocumentMeta } from '../hooks/useDocumentMeta';
 
 export default function NotFound() {
+  useDocumentMeta({
+    title: 'Page Not Found | ARKINOX',
+    description: 'The page you are looking for doesn\'t exist, has been moved, or the link may be broken.',
+    noindex: true,
+  });
+
   return (
     <div className="min-h-[75vh] flex items-center justify-center px-4 py-24 bg-accent/30">
       <div className="max-w-xl w-full text-center">

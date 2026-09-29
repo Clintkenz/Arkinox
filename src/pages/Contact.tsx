@@ -2,11 +2,18 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Phone, Mail, MapPin, Send, CheckCircle2, Facebook, Instagram, Linkedin } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
+import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { db, collection, setDoc, doc } from '../firebase';
 import { cn, cleanImageUrl } from '../lib/utils';
 
 export default function Contact() {
   const { settings } = useFirebase();
+
+  useDocumentMeta({
+    title: `Contact Us | ${settings.companyName || 'ARKINOX'}`,
+    description: `Get in touch with ${settings.companyName || 'ARKINOX'}. Reach out for project inquiries, quotes, or general questions - we aim to respond within 24 hours.`,
+    image: settings.heroImageUrl || "/arkinox-headquarters-and-branded-vehicles-1.png",
+  });
   const [formData, setFormData] = useState({
     name: '',
     email: '',

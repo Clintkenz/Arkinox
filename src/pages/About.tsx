@@ -2,10 +2,17 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { ShieldCheck, Users, Target, Award, CheckCircle2, Plus, Camera } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
+import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { cn, cleanImageUrl } from '../lib/utils';
 
 export default function About() {
   const { teamMembers, settings } = useFirebase();
+
+  useDocumentMeta({
+    title: `About Us | ${settings.companyName || 'ARKINOX'}`,
+    description: `Learn about ${settings.companyName || 'ARKINOX'}'s mission, values, and the team behind our HSE management, supply coordination, and project management services.`,
+    image: settings.heroImageUrl || "/arkinox-headquarters-and-branded-vehicles.png",
+  });
 
   const values = [
     { title: 'Safety First', icon: <ShieldCheck size={32} />, desc: 'We prioritize the health and safety of our people and the environment in everything we do.' },

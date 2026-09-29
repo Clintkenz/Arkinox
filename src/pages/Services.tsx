@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ShieldCheck, Truck, LayoutDashboard, HardHat, ArrowRight, CheckCircle2, Phone, Mail, Anchor, Play } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
+import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import ReactMarkdown from 'react-markdown';
 import { cn, cleanImageUrl } from '../lib/utils';
 import VideoEmbed from '../components/VideoEmbed';
@@ -19,6 +20,12 @@ const iconMap: Record<string, React.ReactNode> = {
 
 export function Services() {
   const { services, settings } = useFirebase();
+
+  useDocumentMeta({
+    title: `Our Services | ${settings.companyName || 'ARKINOX'}`,
+    description: `Explore ${settings.companyName || 'ARKINOX'}'s core services, including HSE management, supply coordination, and project management support for oil & gas and construction firms.`,
+    image: settings.heroImageUrl,
+  });
 
   return (
     <div className="">
@@ -120,16 +127,12 @@ export function ServiceDetail() {
   const { services, settings } = useFirebase();
   const service = services.find(s => s.slug === slug) || (INITIAL_SERVICES as Service[]).find(s => s.slug === slug);
 
-  useEffect(() => {
-    if (service) {
-      document.title = service.metaTitle || `${service.title} | ${settings.companyName || 'ARKINOX'}`;
-      
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) {
-        metaDescription.setAttribute('content', service.metaDescription || service.description || '');
-      }
-    }
-  }, [service, settings]);
+  useDocumentMeta({
+    title: service ? (service.metaTitle || `${service.title} | ${settings.companyName || 'ARKINOX'}`) : 'Service Not Found',
+    description: service?.metaDescription || service?.description,
+    image: service ? cleanImageUrl(service.imageUrl) : undefined,
+    noindex: !service,
+  });
 
   if (!service) {
     return (

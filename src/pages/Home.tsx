@@ -24,6 +24,7 @@ import {
   ThumbsUp
 } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
+import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { cn, cleanImageUrl } from '../lib/utils';
 import VideoEmbed from '../components/VideoEmbed';
 import TestimonialSlider from '../components/TestimonialSlider';
@@ -58,6 +59,12 @@ const statIconMap: Record<string, React.ReactNode> = {
 export default function Home() {
   const { services, projects, blogPosts, teamMembers, testimonials, settings } = useFirebase();
   const [showLoginLinks, setShowLoginLinks] = useState(false);
+
+  useDocumentMeta({
+    title: settings.seo?.metaTitle || `${settings.companyName || 'ARKINOX'} | Construction, Oil & Gas Support, and Supply Logistics`,
+    description: settings.seo?.metaDescription || 'Providing HSE management, supply coordination, and project management support for oil & gas and construction firms.',
+    image: settings.heroImageUrl || settings.logoUrl,
+  });
 
   const displayStats = settings.stats && settings.stats.length > 0
     ? settings.stats

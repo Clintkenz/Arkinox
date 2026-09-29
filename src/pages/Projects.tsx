@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Calendar, Tag, ArrowRight, ChevronRight, MapPin, Briefcase, Play } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
+import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import ReactMarkdown from 'react-markdown';
 import { cn, cleanImageUrl } from '../lib/utils';
 import VideoEmbed from '../components/VideoEmbed';
@@ -11,6 +12,12 @@ import { Project } from '../types';
 
 export function Projects() {
   const { projects, settings } = useFirebase();
+
+  useDocumentMeta({
+    title: `Our Projects | ${settings.companyName || 'ARKINOX'}`,
+    description: `Browse completed and ongoing projects delivered by ${settings.companyName || 'ARKINOX'} across the oil & gas and construction sectors.`,
+    image: settings.heroImageUrl,
+  });
 
   return (
     <div className="">
@@ -92,6 +99,13 @@ export function ProjectDetail() {
   const { slug } = useParams();
   const { projects, settings } = useFirebase();
   const project = projects.find(p => p.slug === slug) || (INITIAL_PROJECTS as Project[]).find(p => p.slug === slug);
+
+  useDocumentMeta({
+    title: project ? `${project.title} | ${settings.companyName || 'ARKINOX'}` : 'Project Not Found',
+    description: project?.description,
+    image: project ? cleanImageUrl(project.imageUrl) : undefined,
+    noindex: !project,
+  });
 
   if (!project) {
     return (

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /author
+
+Sitemap: https://arkinoxltd.com/sitemap.xml

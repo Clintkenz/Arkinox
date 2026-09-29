@@ -34,7 +34,8 @@ import {
   User as UserIcon, UserPlus, Sparkles, Wand2, Loader2, Quote, TrendingUp
 } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
-import { 
+import { useDocumentMeta } from '../hooks/useDocumentMeta';
+import {
   db, auth, loginWithGoogle, loginWithEmail, logout, collection, doc, getDocs, setDoc, updateDoc, deleteDoc, 
   Timestamp, handleFirestoreError, OperationType 
 } from '../firebase';
@@ -89,6 +90,8 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
 
 export default function Admin() {
   const { user, isAdmin, isAuthor, isAuthReady, settings, services, projects, blogPosts, teamMembers, testimonials, messages, allUsers, loading } = useFirebase();
+
+  useDocumentMeta({ title: 'Admin Dashboard | ARKINOX', noindex: true });
   const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'services' | 'projects' | 'blog' | 'team' | 'messages' | 'users' | 'profile' | 'testimonials'>('overview');
   const [blogEditorTab, setBlogEditorTab] = useState<'edit' | 'preview'>('edit');
   const [editingItem, setEditingItem] = useState<any>(null);

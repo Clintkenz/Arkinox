@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Calendar, User, Tag, ArrowRight, ChevronRight, Clock, Share2, Linkedin, Twitter, Facebook, Instagram, Music2 } from 'lucide-react';
 import { useFirebase } from '../hooks/useFirebase';
+import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import ReactMarkdown from 'react-markdown';
 import DOMPurify from 'dompurify';
 import { cn, cleanImageUrl } from '../lib/utils';
@@ -11,6 +12,12 @@ import { BlogPost } from '../types';
 
 export function Blog() {
   const { blogPosts, settings, allUsers } = useFirebase();
+
+  useDocumentMeta({
+    title: `Blog & Insights | ${settings.companyName || 'ARKINOX'}`,
+    description: `Stay updated with the latest trends and insights in HSE, logistics, and project management from ${settings.companyName || 'ARKINOX'}.`,
+    image: settings.heroImageUrl,
+  });
 
   return (
     <div className="">
@@ -103,16 +110,12 @@ export function BlogPostDetail() {
   const { blogPosts, settings, allUsers } = useFirebase();
   const post = blogPosts.find(p => p.slug === slug) || (INITIAL_BLOG_POSTS as BlogPost[]).find(p => p.slug === slug);
 
-  useEffect(() => {
-    if (post) {
-      document.title = post.metaTitle || `${post.title} | ${settings.companyName || 'ARKINOX'}`;
-      
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) {
-        metaDescription.setAttribute('content', post.metaDescription || post.excerpt || '');
-      }
-    }
-  }, [post, settings]);
+  useDocumentMeta({
+    title: post ? (post.metaTitle || `${post.title} | ${settings.companyName || 'ARKINOX'}`) : 'Post Not Found',
+    description: post?.metaDescription || post?.excerpt,
+    image: post ? cleanImageUrl(post.imageUrl) : undefined,
+    noindex: !post,
+  });
 
   const author = allUsers.find(u => u.uid === post?.authorId);
   const authorName = author?.displayName || post?.authorName || post?.author || 'ARKINOX Author';
